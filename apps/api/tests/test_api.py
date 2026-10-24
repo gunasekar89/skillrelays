@@ -346,6 +346,7 @@ def test_website_passages_from_one_page_make_one_citation(monkeypatch):
         return [web.WebPassage(url=url, title="Exam policy", text="Formal dress code in exams."), web.WebPassage(url=url, title="Exam policy", text="Carry your ID card.")]
 
     monkeypatch.setattr(web, "lookup", fake_lookup)
-    _with_model(monkeypatch, lambda p: "This isn't in the training document, but the official website says: formal dress [1].")
+    _with_model(monkeypatch, lambda p: "Yes, a formal dress code applies in exams [1].")
     body = client.post("/api/ask", json={"question": "Is there a dress code?", "documents": [GUIDE]}).json()
     assert [c["url"] for c in body["citations"]] == [url]
+    assert body["answer"].startswith("This isn't in the training document, but the official website says: Yes")

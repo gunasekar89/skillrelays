@@ -266,6 +266,9 @@ async def _web_answer(req: AskRequest, provider: llm.Provider) -> AskResponse | 
     except Exception as exc:
         log.warning("LLM call failed for website answer: %s", exc)
         return None
+    lead = "This isn't in the training document, but the official website says:"
+    if _cited(answer, citations) and not answer.lower().startswith(lead[:20].lower()):
+        answer = f"{lead} {answer}"
     return AskResponse(answer=answer, citations=_cited(answer, citations), grounded=False, provider=f"{provider.name} + official website", model=provider.model, usage=usage)
 
 
