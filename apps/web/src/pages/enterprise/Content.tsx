@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { BadgeCheck, FileText, HelpCircle, ListChecks, Mic, Quote, ScrollText, Wrench } from "lucide-react";
 import { PageHeader, SimBadge } from "../../components/ui";
 import { generateContent, type KtSession } from "../../lib/demo";
+import { publishSession } from "../../lib/knowledge";
 import { load, save } from "../../lib/storage";
 import { formatClock } from "../../lib/voice";
 
@@ -35,6 +36,7 @@ export default function Content() {
   const approve = () => {
     const next = { ...session, approved: true };
     save("sr.kt", next);
+    publishSession(next);
     setSession(next);
   };
 
@@ -172,11 +174,16 @@ export default function Content() {
         <div className="space-y-5">
           <div className="card p-5">
             <div className="label">Review</div>
-            <p className="mt-2 text-sm text-slate-600">Check each tab. Every runbook step links back to the transcript it came from. Nothing reaches employees until you approve it.</p>
+            <p className="mt-2 text-sm text-slate-600">Check each tab. Every runbook step links back to the transcript it came from. Nothing reaches employees until you approve it. Approving also adds it to the AI assistant's documents.</p>
             {session.approved ? (
-              <Link to="/enterprise/learn" className="btn-teal mt-4 w-full">
-                Open employee quiz
-              </Link>
+              <div className="mt-4 grid gap-2">
+                <Link to="/enterprise/assistant" className="btn-primary w-full">
+                  Ask the AI assistant
+                </Link>
+                <Link to="/enterprise/learn" className="btn-teal w-full">
+                  Open employee quiz
+                </Link>
+              </div>
             ) : (
               <button onClick={approve} className="btn-primary mt-4 w-full">
                 <BadgeCheck className="h-4 w-4" /> Approve & publish
