@@ -8,7 +8,7 @@ import { speak } from "../../lib/voice";
 
 type Message = { role: "user" | "assistant"; content: string; sources?: Passage[]; via?: string; error?: boolean };
 
-const starters = ["What should I check first when a pod is in CrashLoopBackOff?", "How fast must on-call acknowledge an incident?", "Summarize the key steps in this training."];
+const starters = ["What should I do if a customer's card is lost?", "Can I ask the customer for their OTP?", "When should I escalate a call?"];
 
 const timeAgo = (t: number) => {
   const m = Math.round((Date.now() - t) / 60000);

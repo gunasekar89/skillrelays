@@ -96,14 +96,14 @@ export function toPassages(docs: { name: string; text: string }[], size = 900): 
 }
 
 const stop = new Set(
-  "a an the and or but if of to in on at by for with from as is are was were be been being do does did how what when where which who why whom this that these those it its i we you they he she our your their my me us them can could should would will shall may might must not no yes there here than then so such about into over under up down out any all each some more most other also just only very".split(" "),
+  "a an the and or but if of to in on at by for with from as is are was were be been being do does did how what when where which who why whom this that these those it its i we you they he she our your their my me us them can could should would will shall may might must not no yes there here than then so such about into over under up down out any all each some more most other also just only very take get need want tell know long much many often soon happen".split(" "),
 );
 const terms = (s: string) =>
   s
     .toLowerCase()
     .split(/[^a-z0-9]+/)
     .filter((w) => w.length > 1 && !stop.has(w))
-    .map((w) => (w.length > 4 ? w.replace(/(ing|ed|es|s)$/, "") : w));
+    .map((w) => (w.length > 4 ? w.replace(/(ing|ed|(?<!s)s)$/, "").replace(/e$/, "") : w));
 
 /** Ranks passages against the question (TF-IDF style) and returns the best few, numbered for citation. */
 export function retrieve(question: string, docs: { name: string; text: string }[], k = 6): Passage[] {
@@ -131,11 +131,36 @@ export function retrieve(question: string, docs: { name: string; text: string }[
 export function simulatedAnswer(question: string, passages: Passage[]): string {
   if (!passages.length) return "I couldn't find that in the training documents. Try other words, or ask the trainer to add it.";
   const q = new Set(terms(question));
-  const best = passages
-    .slice(0, 3)
-    .flatMap((p) => p.text.split(/(?<=[.?!])\s+|\n+/).map((s) => ({ s: s.trim(), id: p.id, hits: terms(s).filter((t) => q.has(t)).length })))
-    .filter((x) => x.hits > 0 && x.s.length > 12)
-    .sort((a, b) => b.hits - a.hits)
+  const wantsNumber = /\bhow (long|many|much|fast|soon|often)\b|\bwhen\b/i.test(question);
+  // Short lines are headings: the sentences under a heading inherit its words, so
+  // "lost card" finds the steps listed under "Lost or stolen card".
+  const sentences = passages.slice(0, 3).flatMap((p) => {
+    let heading: string[] = [];
+    return p.text.split(/\n+/).flatMap((line) => {
+      if (line.trim().split(/\s+/).length < 6) {
+        heading = terms(line);
+        return [];
+      }
+      // Split after sentence punctuation only when a capital follows, so "Rs. 500" stays whole.
+      // Pieces inside an open quote are joined back, so a quoted script line stays whole.
+      const parts = line.split(/(?<=[.?!])\s+(?=[A-Z"“])/).reduce<string[]>((acc, part) => {
+        const last = acc[acc.length - 1];
+        if (last && (last.match(/["“”]/g) ?? []).length % 2) acc[acc.length - 1] = `${last} ${part}`;
+        else acc.push(part);
+        return acc;
+      }, []);
+      return parts.map((s) => ({ s: s.trim(), id: p.id, words: terms(s), heading }));
+    });
+  });
+  const rarity = new Map([...q].map((t) => [t, 1 / Math.max(1, sentences.filter((x) => x.words.includes(t)).length)]));
+  const best = sentences
+    .map((x) => {
+      const own = [...q].filter((t) => x.words.includes(t)).reduce((s, t) => s + rarity.get(t)!, 0);
+      const inherited = [...q].filter((t) => x.heading.includes(t) && !x.words.includes(t)).reduce((s, t) => s + rarity.get(t)!, 0);
+      return { ...x, score: own + inherited * 0.8 + (own && wantsNumber && /\d/.test(x.s) ? 0.5 : 0) };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score)
     .slice(0, 3);
   if (!best.length) return "I couldn't find a clear answer in the training documents. The closest passages are listed below.";
   return `From the training documents:\n${best.map((b) => `• ${b.s} [${b.id}]`).join("\n")}`;
