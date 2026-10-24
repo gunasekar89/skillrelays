@@ -108,3 +108,24 @@ def test_section_heading_guides_the_answer():
     }
     body = client.post("/api/ask", json={"question": "What do I do when a card is lost or stolen?", "documents": [guide]}).json()
     assert body["answer"].split("say: ")[1].startswith("Block the card immediately")
+
+
+def test_serves_web_app_with_spa_fallback(tmp_path, monkeypatch):
+    import importlib
+
+    import app.main as main
+
+    (tmp_path / "assets").mkdir()
+    (tmp_path / "index.html").write_text("<html>app</html>")
+    (tmp_path / "assets" / "app.js").write_text("console.log(1)")
+    monkeypatch.setenv("WEB_DIST", str(tmp_path))
+    web = TestClient(importlib.reload(main).app)
+    try:
+        assert web.get("/assets/app.js").text == "console.log(1)"
+        assert web.get("/enterprise/assistant").text == "<html>app</html>"
+        assert web.get("/../../etc/passwd").text == "<html>app</html>"
+        assert web.get("/api/nope").status_code == 404
+        assert web.get("/api/health").json()["ok"] is True
+    finally:
+        monkeypatch.delenv("WEB_DIST")
+        importlib.reload(main)

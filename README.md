@@ -29,6 +29,16 @@ uvicorn app.main:app --port 8000
 
 The web app proxies `/api` to port 8000. API keys stay on the server and never reach the browser. Without the API, the assistant still works in a labeled offline mode. Tests: `pip install -r requirements-dev.txt && pytest`. Use Chrome or Edge for the full voice experience: the browser's speech recognition powers the live transcript, and its speech synthesis gives the interviewer a voice.
 
+## Put it online (Azure App Service)
+
+The API also serves the built web app, so the whole demo deploys as one Python app. With the Azure CLI signed in:
+
+```bash
+deploy/azure/deploy-appservice.sh path/to/env-file   # env file with the AZURE_OPENAI_* values; optional
+```
+
+It builds the web app, creates an App Service plan and app in your first resource group, sets the AI settings on the server (they never reach the browser), deploys, and prints the public https link. Override `RESOURCE_GROUP`, `LOCATION`, `APP_NAME` or `SKU` as needed.
+
 ## Demo theme
 
 The enterprise demo trains freshers on credit card customer support (BFSI). A sample KT session is built in, and `demo/enterprise/Acme-Bank-Cards-Complete-Fresher-Training-Guide.docx` is a mock document to upload to the AI assistant. All names, amounts and rules in the samples are made up.

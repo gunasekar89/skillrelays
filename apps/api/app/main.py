@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import io
 import logging
+import os
 import re
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from . import llm
@@ -191,3 +194,19 @@ async def extract(file: UploadFile) -> dict:
     if not text:
         raise HTTPException(422, "No text found. Scanned PDFs need OCR, which isn't supported yet.")
     return {"title": file.filename, "text": text[:MAX_DOC_CHARS]}
+
+
+# In a single-container deployment the built web app sits next to the API. Serve it, falling back
+# to index.html so client-side routes like /enterprise/assistant load on refresh.
+STATIC_DIR = Path(os.getenv("WEB_DIST", Path(__file__).resolve().parent.parent / "static")).resolve()
+
+if (STATIC_DIR / "index.html").is_file():
+
+    @app.get("/{path:path}", include_in_schema=False)
+    def web_app(path: str) -> FileResponse:
+        if path.startswith("api/"):
+            raise HTTPException(404)
+        file = (STATIC_DIR / path).resolve()
+        if path and file.is_file() and STATIC_DIR in file.parents:
+            return FileResponse(file)
+        return FileResponse(STATIC_DIR / "index.html")
