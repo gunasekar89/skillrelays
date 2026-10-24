@@ -149,3 +149,26 @@ def test_llm_retries_on_rate_limit(monkeypatch):
     provider = llm.Provider("OpenAI", "m", "https://example.test/chat", {}, True)
     answer, _ = asyncio.run(llm.chat(provider, [{"role": "user", "content": "hi"}]))
     assert answer == "ok [1]" and len(calls) == 2
+
+
+def test_chat_message_reaches_the_model_with_outline(monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+    seen = {}
+
+    async def fake_chat(provider, messages, timeout=30.0):
+        seen["prompt"] = messages[-1]["content"]
+        return "Great, let's start with section 1 [1]. Say next to continue.", {}
+
+    monkeypatch.setattr(llm, "chat", fake_chat)
+    guide = {"id": "g", "title": "Guide", "text": "About the company\nAcme Bank is a retail bank.\n\nTickets\nCreate a ticket in the CRM."}
+    body = client.post("/api/ask", json={"question": "sure lets start the training", "documents": [guide]}).json()
+    assert body["answer"].startswith("Great, let's start")
+    assert "About the company" in seen["prompt"] and "Tickets" in seen["prompt"]
+    assert [c["doc_id"] for c in body["citations"]] == ["g"]
+
+
+def test_one_citation_per_document():
+    long_doc = {**RUNBOOK, "text": (RUNBOOK["text"] + " ") * 6}
+    body = client.post("/api/ask", json={"question": "exit code 137 OOMKilled logs previous", "documents": [long_doc]}).json()
+    assert len({c["doc_id"] for c in body["citations"]}) == len(body["citations"])

@@ -141,3 +141,18 @@ function askOffline(question: string, docs: KnowledgeDoc[]): AskResult {
   });
   return { answer: `Here's what the training documents say: ${parts.join(" ")}`, citations, grounded: true, provider: "Offline" };
 }
+
+const GUIDE_FLAG = "sr.guide-added";
+
+/** Add the bundled fresher guide once per browser, so a fresh demo has the full material. */
+export async function addBundledGuide(docs: KnowledgeDoc[]): Promise<KnowledgeDoc[] | null> {
+  try {
+    if (localStorage.getItem(GUIDE_FLAG)) return null;
+    const r = await fetch("/samples/acme-bank-cards-fresher-guide.txt");
+    if (!r.ok) return null;
+    localStorage.setItem(GUIDE_FLAG, "1");
+    return upsertDoc(docs, { id: "sample-fresher-guide", title: "Acme Bank Cards — Complete Fresher Training Guide", text: await r.text(), source: "sample" });
+  } catch {
+    return null;
+  }
+}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "r
 import { Bot, FilePlus2, FileText, Loader2, Mic, MicOff, Pencil, Send, Trash2, Upload, Volume2, VolumeX, X } from "lucide-react";
 import { PageHeader } from "../../components/ui";
 import {
+  addBundledGuide,
   apiHealth,
   ask,
   extractFile,
@@ -16,7 +17,7 @@ import { speak, speechRecognitionSupported, stopSpeaking, useSpeechToText } from
 
 type Message = { role: "user" | "assistant"; content: string; result?: AskResult };
 
-const starters = ["What do I do when a card is lost or stolen?", "How do I verify a customer?", "Can I waive the late fee?"];
+const starters = ["Start my training", "What do I do when a card is lost or stolen?", "How do I create a ticket?", "When should I escalate a call?"];
 
 export default function Assistant() {
   const [docs, setDocs] = useState<KnowledgeDoc[]>(loadDocs);
@@ -34,6 +35,7 @@ export default function Assistant() {
 
   useEffect(() => {
     apiHealth().then(setHealth);
+    addBundledGuide(loadDocs()).then((next) => next && setDocs(next));
     return () => stopSpeaking();
   }, []);
   useEffect(() => saveDocs(docs), [docs]);
