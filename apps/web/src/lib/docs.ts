@@ -72,7 +72,7 @@ function docxXmlToText(xml: string) {
 }
 
 /** Splits documents into passages of a few paragraphs, keeping the source name for citations. */
-export function toPassages(docs: { name: string; text: string }[], size = 900): Omit<Passage, "id">[] {
+export function toPassages(docs: { name: string; text: string }[], size = 700): Omit<Passage, "id">[] {
   const out: Omit<Passage, "id">[] = [];
   for (const d of docs) {
     let cur = "";
@@ -106,7 +106,7 @@ const terms = (s: string) =>
     .map((w) => (w.length > 4 ? w.replace(/(ing|ed|(?<!s)s)$/, "").replace(/e$/, "") : w));
 
 /** Ranks passages against the question (TF-IDF style) and returns the best few, numbered for citation. */
-export function retrieve(question: string, docs: { name: string; text: string }[], k = 6): Passage[] {
+export function retrieve(question: string, docs: { name: string; text: string }[], k = 4): Passage[] {
   const q = [...new Set(terms(question))];
   if (!q.length) return [];
   const passages = toPassages(docs);

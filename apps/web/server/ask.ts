@@ -42,25 +42,41 @@ function pickProvider(env: Env): Provider | null {
   return null;
 }
 
+// Small sandbox deployments allow only a few thousand tokens per minute. On a
+// rate limit, wait as long as the service asks (up to 20 s) and try once more.
+async function withRetry(send: () => Promise<Response>) {
+  const res = await send();
+  if (res.status !== 429) return res;
+  const ms = Number(res.headers.get("retry-after-ms")) || Number(res.headers.get("retry-after")) * 1000 || 10_000;
+  await new Promise((r) => setTimeout(r, Math.min(ms, 20_000)));
+  const again = await send();
+  if (again.status === 429) throw new Error("The AI is busy right now (usage limit reached). Wait about 30 seconds and ask again.");
+  return again;
+}
+
 async function chatCompletions(url: string, auth: Record<string, string>, model: string | undefined, system: string, messages: Turn[]) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...auth },
-    body: JSON.stringify({ ...(model ? { model } : {}), temperature: 0.2, max_tokens: 800, messages: [{ role: "system", content: system }, ...messages] }),
-    signal: AbortSignal.timeout(60_000),
-  });
+  const res = await withRetry(() =>
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...auth },
+      body: JSON.stringify({ ...(model ? { model } : {}), temperature: 0.2, max_tokens: 500, messages: [{ role: "system", content: system }, ...messages] }),
+      signal: AbortSignal.timeout(60_000),
+    }),
+  );
   const data = (await res.json().catch(() => ({}))) as { choices?: { message?: { content?: string } }[]; error?: { message?: string } };
   if (!res.ok) throw new Error(data.error?.message ?? `AI service returned ${res.status}`);
   return data.choices?.[0]?.message?.content?.trim() ?? "";
 }
 
 async function claude(key: string, model: string, system: string, messages: Turn[]) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model, max_tokens: 800, system, messages }),
-    signal: AbortSignal.timeout(60_000),
-  });
+  const res = await withRetry(() =>
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model, max_tokens: 500, system, messages }),
+      signal: AbortSignal.timeout(60_000),
+    }),
+  );
   const data = (await res.json().catch(() => ({}))) as { content?: { type: string; text?: string }[]; error?: { message?: string } };
   if (!res.ok) throw new Error(data.error?.message ?? `AI service returned ${res.status}`);
   return (data.content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("").trim();
@@ -128,8 +144,8 @@ export function askApi(env: Env): Plugin {
       const turns: Turn[] = [
         ...history
           .filter((t) => (t.role === "user" || t.role === "assistant") && typeof t.content === "string")
-          .slice(-6)
-          .map((t) => ({ role: t.role, content: t.content.slice(0, 2000) })),
+          .slice(-4)
+          .map((t) => ({ role: t.role, content: t.content.slice(0, 800) })),
         { role: "user", content: `Training passages:\n\n${context}\n\nQuestion: ${question}` },
       ];
 
