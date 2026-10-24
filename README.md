@@ -31,7 +31,7 @@ The web app proxies `/api` to port 8000. API keys stay on the server and never r
 
 ## Demo theme
 
-The enterprise demo trains freshers on credit card customer support (BFSI). A sample KT session is built in, and `demo/enterprise/Credit-Card-Support-Fresher-Training.docx` is a mock document to upload to the AI assistant. All names, amounts and rules in the samples are made up.
+The enterprise demo trains freshers on credit card customer support (BFSI). A sample KT session is built in, and `demo/enterprise/Acme-Bank-Cards-Complete-Fresher-Training-Guide.docx` is a mock document to upload to the AI assistant. All names, amounts and rules in the samples are made up.
 
 ## What works today
 
