@@ -144,14 +144,20 @@ function askOffline(question: string, docs: KnowledgeDoc[]): AskResult {
 
 const GUIDE_FLAG = "sr.guide-added";
 
-/** Add the bundled fresher guide once per browser, so a fresh demo has the full material. */
+// Short fingerprint of the bundled text, so a newer guide replaces the stored copy (as a new version).
+const fingerprint = (t: string) => [...t].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) | 0, 0).toString(36);
+
+/** Add the bundled fresher guide, and refresh it when the bundled file changes. */
 export async function addBundledGuide(docs: KnowledgeDoc[]): Promise<KnowledgeDoc[] | null> {
   try {
-    if (localStorage.getItem(GUIDE_FLAG)) return null;
-    const r = await fetch("/samples/acme-bank-cards-fresher-guide.txt");
+    const r = await fetch("/samples/acme-bank-cards-fresher-guide.txt", { cache: "no-store" });
     if (!r.ok) return null;
-    localStorage.setItem(GUIDE_FLAG, "1");
-    return upsertDoc(docs, { id: "sample-fresher-guide", title: "Acme Bank Cards — Complete Fresher Training Guide", text: await r.text(), source: "sample" });
+    const text = await r.text();
+    if (localStorage.getItem(GUIDE_FLAG) === fingerprint(text)) return null;
+    localStorage.setItem(GUIDE_FLAG, fingerprint(text));
+    const next = upsertDoc(docs, { id: "sample-fresher-guide", title: "Acme Bank Cards — Complete Fresher Training Guide", text, source: "sample" });
+    saveDocs(next);
+    return next;
   } catch {
     return null;
   }
