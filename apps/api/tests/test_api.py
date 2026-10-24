@@ -332,6 +332,6 @@ def test_college_name_in_question_does_not_hide_the_answer():
 
     assert "Garden" not in without_name("What is the MBA fee at Garden City University?", "Garden City University")
     assert without_name("Tell me about Garden City University", "Garden City University") == "Tell me about Garden City University"
-    doc = {"id": "g", "title": "GCU", "text": "Garden City University is in Bengaluru. Garden City University has 9 schools.\n\nThe MBA total is ₹5,94,000.", "version": 1}
+    doc = {"id": "g", "title": "GCU", "text": "Garden City University is in Bengaluru. Garden City University has 9 schools.\n\nThe MBA fee total is ₹5,94,000.", "version": 1}
     body = client.post("/api/ask", json={"question": "What is the MBA fee at Garden City University?", "documents": [doc]}).json()
     assert "5,94,000" in body["answer"]
