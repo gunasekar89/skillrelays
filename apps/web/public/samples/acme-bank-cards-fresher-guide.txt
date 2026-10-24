@@ -4,7 +4,7 @@ Version 2.0 · Owner: Cards Contact Centre Training Team · For new Credit Card 
 
 1. About the company: Acme Bank
 
-What our company does: Acme Bank is a private sector retail bank in India. It was founded in 1998 and is headquartered in Chennai. The bank has over 650 branches, 4 million customers and 1.2 million active credit cards.
+What our company does: Acme Bank is a private sector retail bank in India. It was founded in 1998 by Dola Ramesh and is headquartered in Chennai. The bank has over 650 branches, 4 million customers and 1.2 million active credit cards.
 
 Acme Bank offers savings accounts, home and personal loans, fixed deposits and credit cards.
 
