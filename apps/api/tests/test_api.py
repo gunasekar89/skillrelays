@@ -172,3 +172,55 @@ def test_one_citation_per_document():
     long_doc = {**RUNBOOK, "text": (RUNBOOK["text"] + " ") * 6}
     body = client.post("/api/ask", json={"question": "exit code 137 OOMKilled logs previous", "documents": [long_doc]}).json()
     assert len({c["doc_id"] for c in body["citations"]}) == len(body["citations"])
+
+
+GUIDE = {
+    "id": "guide",
+    "title": "Fresher Guide",
+    "text": "1. About the company\nAcme Bank was founded in 1998 in Chennai.\n\n"
+    "2. Our credit card products\nThe Acme Spark Card has an annual fee of ₹499.\n\n"
+    "3. Ticketing\nCreate a ticket in the CRM.",
+}
+
+
+@pytest.mark.parametrize(
+    "message,history,section",
+    [
+        ("sure lets start the training", [], "Section 1 of 3: About the company"),
+        ("Start my training", [], "Section 1 of 3: About the company"),
+        ("next", [{"role": "assistant", "content": "Section 1 of 3: About the company ..."}], "Section 2 of 3: Our credit card products"),
+        ("ok, continue", [{"role": "assistant", "content": "Section 2 of 3: Our credit card products ..."}], "Section 3 of 3: Ticketing"),
+        ("explain that again", [{"role": "assistant", "content": "Section 2 of 3: ..."}], "Section 2 of 3: Our credit card products"),
+        ("section 3", [], "Section 3 of 3: Ticketing"),
+    ],
+)
+def test_training_walks_through_sections(message, history, section):
+    body = client.post("/api/ask", json={"question": message, "documents": [GUIDE], "history": history}).json()
+    assert body["answer"].startswith(section)
+    assert body["citations"][0]["doc_id"] == "guide"
+
+
+def test_training_sends_only_the_section_text(monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+    seen = {}
+
+    async def fake_chat(provider, messages, timeout=30.0):
+        seen["prompt"] = messages[-1]["content"]
+        return "Section 2 of 3: Our credit card products ...", {}
+
+    monkeypatch.setattr(llm, "chat", fake_chat)
+    history = [{"role": "assistant", "content": "Section 1 of 3: About the company ..."}]
+    client.post("/api/ask", json={"question": "next", "documents": [GUIDE], "history": history})
+    assert "₹499" in seen["prompt"] and "1998" not in seen["prompt"]
+
+
+def test_questions_with_training_words_are_still_questions():
+    body = client.post("/api/ask", json={"question": "How do I start a ticket in the CRM?", "documents": [GUIDE]}).json()
+    assert not body["answer"].startswith("Section")
+
+
+def test_end_of_training():
+    history = [{"role": "assistant", "content": "Section 3 of 3: Ticketing ..."}]
+    body = client.post("/api/ask", json={"question": "next", "documents": [GUIDE], "history": history}).json()
+    assert "end of the Fresher Guide" in body["answer"]
