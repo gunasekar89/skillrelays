@@ -16,11 +16,12 @@ from urllib.parse import quote, urlparse
 
 import httpx
 
-from .retrieval import chunk_document, search, tokenize
+from .retrieval import STOPWORDS, chunk_document, search, tokenize
 
 log = logging.getLogger("skillrelays.web")
 
 MAX_PAGE_BYTES = 1_500_000
+VAGUE = {"there", "any", "student", "students", "have", "has", "tell", "me", "about", "is", "get", "much", "many", "give", "details", "detail", "please"}
 USER_AGENT = "SkillRelaysTrainingAssistant/0.1 (+training demo)"
 
 
@@ -126,16 +127,19 @@ async def _get(client: httpx.AsyncClient, url: str, domains: list[str]) -> httpx
 
 async def _site_search(client: httpx.AsyncClient, domain: str, query: str, domains: list[str]) -> list[str]:
     """WordPress sites answer /wp-json/wp/v2/search; anything else simply returns nothing here."""
-    terms = " ".join(tokenize(query)[:6])
-    if not terms:
-        return []
-    r = await _get(client, f"https://www.{domain}/wp-json/wp/v2/search?per_page=4&search={quote(terms)}", domains)
-    if r is None:
-        return []
-    try:
-        return [x["url"] for x in r.json() if isinstance(x, dict) and is_allowed(x.get("url", ""), domains)]
-    except ValueError:
-        return []
+    # WordPress matches every word, so search the plain key words, then fewer of them if nothing comes back.
+    words = [w for w in re.findall(r"[a-z0-9]+", query.lower()) if w not in STOPWORDS and w not in VAGUE and len(w) > 1]
+    for terms in (words[:4], words[:2], words[-1:]):
+        if not terms:
+            continue
+        r = await _get(client, f"https://www.{domain}/wp-json/wp/v2/search?per_page=4&search={quote(' '.join(terms))}", domains)
+        try:
+            urls = [x["url"] for x in r.json() if isinstance(x, dict) and is_allowed(x.get("url", ""), domains)] if r else []
+        except ValueError:
+            urls = []
+        if urls:
+            return urls
+    return []
 
 
 async def lookup(query: str, doc_texts: list[str], limit_chars: int = 2400) -> list[WebPassage]:

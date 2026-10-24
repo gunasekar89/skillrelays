@@ -16,6 +16,9 @@ STOPWORDS = set(
     "this to was we what when where which who why will with you your should would could about into".split()
 )
 
+# Words that say nothing about what is being asked; a question left with only these keeps the name.
+VAGUE = {"tell", "me", "about", "good", "bad", "info", "information", "detail", "details", "know", "explain", "please", "more", "student"}
+
 _TOKEN = re.compile(r"[a-z0-9][a-z0-9\-_.]*")
 
 
@@ -25,6 +28,17 @@ def _stem(t: str) -> str:
         if len(t) > len(suffix) + 2 and t.endswith(suffix):
             return t[: -len(suffix)]
     return t
+
+
+def without_name(text: str, name: str) -> str:
+    """Drop the organisation's name (and its initials) from a question, so "the MBA fee at Garden City
+    University" searches for "MBA fee" instead of every passage that names the university."""
+    words = [w for w in re.findall(r"[A-Za-z]+", name) if len(w) > 1]
+    if not words:
+        return text
+    names = {w.lower() for w in words} | {"".join(w[0] for w in words).lower()}
+    stripped = re.sub(r"\b(" + "|".join(map(re.escape, names)) + r")\b('s)?", " ", text, flags=re.I)
+    return stripped if set(tokenize(stripped)) - VAGUE else text
 
 
 def tokenize(text: str) -> list[str]:

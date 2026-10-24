@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from . import llm, web
-from .retrieval import Chunk, Hit, best_sentences, chunk_document, coverage, idf_table, search, tokenize
+from .retrieval import Chunk, Hit, best_sentences, chunk_document, coverage, idf_table, search, tokenize, without_name
 
 log = logging.getLogger("skillrelays")
 
@@ -94,7 +94,7 @@ def _chunks(req: AskRequest) -> list[Chunk]:
 
 def _retrieve(req: AskRequest, chunks: list[Chunk]) -> tuple[list[Hit], str]:
     """Return the hits and the query that produced them."""
-    query = req.question
+    query = without_name(req.question, SCOPE_NAME)
     hits = search(chunks, query, k=4)
     if hits and hits[0].score >= 2.0:
         return hits, query
@@ -241,7 +241,7 @@ def _wants_lookup(question: str) -> bool:
 async def _web_answer(req: AskRequest, provider: llm.Provider) -> AskResponse | None:
     """Answer from the organisation's official website when the documents don't cover the question."""
     try:
-        passages = await web.lookup(req.question, [d.text for d in req.documents])
+        passages = await web.lookup(without_name(req.question, SCOPE_NAME), [d.text for d in req.documents])
     except Exception as exc:  # the website being down must not break the chat
         log.warning("Website lookup failed: %s", exc)
         return None
@@ -311,7 +311,7 @@ async def ask(req: AskRequest) -> AskResponse:
         answer = _simulated_answer(query, hits, chunks, citations) if grounded else NOT_FOUND
         return AskResponse(answer=answer, citations=_cited(answer, citations), grounded=grounded, provider=f"Simulated ({provider.name} unavailable)")
 
-    if re.search(r"couldn.t find", answer, re.I) and _wants_lookup(req.question):
+    if len(answer) < 300 and re.search(r"couldn.t find", answer, re.I) and _wants_lookup(req.question):
         found = await _web_answer(req, provider)
         if found:
             return found
