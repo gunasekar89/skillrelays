@@ -245,14 +245,19 @@ async def _web_answer(req: AskRequest, provider: llm.Provider) -> AskResponse | 
     except Exception as exc:  # the website being down must not break the chat
         log.warning("Website lookup failed: %s", exc)
         return None
-    citations = [Citation(n=i + 1, doc_id=p.url, title=p.title, version=0, snippet=p.text[:400], url=p.url) for i, p in enumerate(passages)]
-    sources = "\n\n".join(f"[{c.n}] {c.title} ({c.url}):\n{p.text}" for c, p in zip(citations, passages)) or "(no website passages found)"
+    # One numbered source per page, combining that page's passages.
+    pages: dict[str, list[web.WebPassage]] = {}
+    for p in passages:
+        pages.setdefault(p.url, []).append(p)
+    citations = [Citation(n=i + 1, doc_id=url, title=ps[0].title, version=0, snippet=ps[0].text[:400], url=url) for i, (url, ps) in enumerate(pages.items())]
+    texts = ["\n...\n".join(p.text for p in ps) for ps in pages.values()]
+    sources = "\n\n".join(f"[{c.n}] {c.title} ({c.url}):\n{t}" for c, t in zip(citations, texts)) or "(no website passages found)"
     instruction = (
         f"The training documents don't answer this. Below are passages from the official website of {SCOPE_NAME}. "
         f"If the message is not about {SCOPE_NAME}, reply only: \"I can only help with questions about {SCOPE_NAME}.\" "
-        "Otherwise answer only from the website passages, citing them like [1], and start with: "
+        "If the passages answer it, answer only from them, citing them like [1], and start with: "
         "\"This isn't in the training document, but the official website says:\" "
-        "If the passages don't answer it, say you couldn't find it in the training document or on the official website."
+        "If the passages don't answer it, reply only: \"I couldn't find that in the training document or on the official website.\""
     )
     messages = [{"role": "system", "content": SYSTEM_PROMPT}, *_history(req, turns=2)]
     messages.append({"role": "user", "content": f"{instruction}\n\nWebsite passages:\n{sources}\n\nMessage: {req.question}"})

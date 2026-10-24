@@ -335,3 +335,17 @@ def test_college_name_in_question_does_not_hide_the_answer():
     doc = {"id": "g", "title": "GCU", "text": "Garden City University is in Bengaluru. Garden City University has 9 schools.\n\nThe MBA fee total is ₹5,94,000.", "version": 1}
     body = client.post("/api/ask", json={"question": "What is the MBA fee at Garden City University?", "documents": [doc]}).json()
     assert "5,94,000" in body["answer"]
+
+
+def test_website_passages_from_one_page_make_one_citation(monkeypatch):
+    from app import web
+
+    url = "https://www.gardencity.university/campus-life/digital-examination-policy/"
+
+    async def fake_lookup(query, texts, limit_chars=2400):
+        return [web.WebPassage(url=url, title="Exam policy", text="Formal dress code in exams."), web.WebPassage(url=url, title="Exam policy", text="Carry your ID card.")]
+
+    monkeypatch.setattr(web, "lookup", fake_lookup)
+    _with_model(monkeypatch, lambda p: "This isn't in the training document, but the official website says: formal dress [1].")
+    body = client.post("/api/ask", json={"question": "Is there a dress code?", "documents": [GUIDE]}).json()
+    assert [c["url"] for c in body["citations"]] == [url]
