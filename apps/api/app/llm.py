@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 from dataclasses import dataclass
 
@@ -53,7 +54,12 @@ async def chat(provider: Provider, messages: list[dict[str, str]], timeout: floa
     if provider.send_model:
         body["model"] = provider.model
     async with httpx.AsyncClient(timeout=timeout) as client:
-        r = await client.post(provider.url, headers=provider.headers, json=body)
+        # Small sandbox quotas return 429 after a few quick questions: wait as told and retry.
+        for attempt in range(3):
+            r = await client.post(provider.url, headers=provider.headers, json=body)
+            if r.status_code != 429 or attempt == 2:
+                break
+            await asyncio.sleep(min(float(r.headers.get("retry-after", 5)), 20))
         r.raise_for_status()
         data = r.json()
     return data["choices"][0]["message"]["content"].strip(), data.get("usage", {})

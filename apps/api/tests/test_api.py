@@ -129,3 +129,23 @@ def test_serves_web_app_with_spa_fallback(tmp_path, monkeypatch):
     finally:
         monkeypatch.delenv("WEB_DIST")
         importlib.reload(main)
+
+
+def test_llm_retries_on_rate_limit(monkeypatch):
+    import asyncio
+
+    import httpx
+
+    calls = []
+
+    def handler(request):
+        calls.append(1)
+        if len(calls) == 1:
+            return httpx.Response(429, headers={"retry-after": "0"})
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok [1]"}}], "usage": {}})
+
+    real_client = httpx.AsyncClient
+    monkeypatch.setattr(llm.httpx, "AsyncClient", lambda **kw: real_client(transport=httpx.MockTransport(handler), **kw))
+    provider = llm.Provider("OpenAI", "m", "https://example.test/chat", {}, True)
+    answer, _ = asyncio.run(llm.chat(provider, [{"role": "user", "content": "hi"}]))
+    assert answer == "ok [1]" and len(calls) == 2
