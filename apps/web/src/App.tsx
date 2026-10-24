@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { BarChart3, FileText, GraduationCap, LayoutDashboard, Mic } from "lucide-react";
+import { BarChart3, Bot, FileText, GraduationCap, LayoutDashboard, Mic } from "lucide-react";
 import { AppShell } from "./components/AppShell";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -10,6 +10,7 @@ import OrgDashboard from "./pages/enterprise/Dashboard";
 import KtSession from "./pages/enterprise/KtSession";
 import Content from "./pages/enterprise/Content";
 import Learn from "./pages/enterprise/Learn";
+import Assistant from "./pages/enterprise/Assistant";
 
 const studentNav = [
   { to: "/student", label: "Dashboard", icon: <LayoutDashboard />, end: true },
@@ -22,6 +23,7 @@ const enterpriseNav = [
   { to: "/enterprise/kt", label: "KT Sessions", icon: <Mic /> },
   { to: "/enterprise/content", label: "Training Content", icon: <FileText /> },
   { to: "/enterprise/learn", label: "Employee Quiz", icon: <GraduationCap /> },
+  { to: "/enterprise/assistant", label: "Ask AI", icon: <Bot /> },
 ];
 
 export default function App() {
@@ -39,6 +41,7 @@ export default function App() {
         <Route path="/enterprise/kt" element={<KtSession />} />
         <Route path="/enterprise/content" element={<Content />} />
         <Route path="/enterprise/learn" element={<Learn />} />
+        <Route path="/enterprise/assistant" element={<Assistant />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
