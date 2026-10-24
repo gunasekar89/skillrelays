@@ -253,3 +253,75 @@ def test_next_after_grading_moves_on():
 def test_question_after_lesson_is_not_graded():
     body = client.post("/api/ask", json={"question": "How do I create a ticket?", "documents": [GUIDE], "history": [LESSON_2]}).json()
     assert not body["answer"].startswith("Thanks for your answer")
+
+
+@pytest.fixture(autouse=True)
+def _no_real_web(monkeypatch):
+    monkeypatch.setenv("WEB_LOOKUP", "off")
+
+
+def _with_model(monkeypatch, reply):
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+    prompts = []
+
+    async def fake_chat(provider, messages, timeout=30.0):
+        prompts.append(messages[-1]["content"])
+        return reply(prompts), {}
+
+    monkeypatch.setattr(llm, "chat", fake_chat)
+    return prompts
+
+
+def test_unknown_answer_comes_from_the_official_website(monkeypatch):
+    from app import web
+
+    async def fake_lookup(query, texts, limit_chars=2400):
+        return [web.WebPassage(url="https://www.gardencity.university/campus-life/sports/", title="Sports", text="GCU has a cricket ground and an indoor badminton court.")]
+
+    monkeypatch.setattr(web, "lookup", fake_lookup)
+    prompts = _with_model(monkeypatch, lambda p: "This isn't in the training document, but the official website says: there is a cricket ground [1].")
+    body = client.post("/api/ask", json={"question": "Does the campus have a cricket ground?", "documents": [GUIDE]}).json()
+    assert "official website" in prompts[-1] and "cricket ground" in prompts[-1]
+    assert body["citations"][0]["url"] == "https://www.gardencity.university/campus-life/sports/"
+    assert "official website" in body["provider"]
+
+
+def test_website_is_tried_when_the_model_cannot_find_it_in_the_document(monkeypatch):
+    from app import web
+
+    calls = []
+
+    async def fake_lookup(query, texts, limit_chars=2400):
+        calls.append(query)
+        return []
+
+    monkeypatch.setattr(web, "lookup", fake_lookup)
+    _with_model(monkeypatch, lambda p: "I couldn't find that in the training documents." if len(p) == 1 else "I can only help with questions about Garden City University.")
+    body = client.post("/api/ask", json={"question": "What is the Spark Card annual fee for students?", "documents": [GUIDE]}).json()
+    assert calls and body["answer"].startswith("I can only help")
+
+
+def test_greetings_and_training_skip_the_website(monkeypatch):
+    from app import web
+
+    async def fail(*a, **k):
+        raise AssertionError("website should not be searched")
+
+    monkeypatch.setattr(web, "lookup", fail)
+    _with_model(monkeypatch, lambda p: "Hello! Say \"start my training\" to begin.")
+    for q in ["Hi", "thanks!", "sure lets start the training"]:
+        assert client.post("/api/ask", json={"question": q, "documents": [GUIDE]}).status_code == 200
+
+
+def test_only_allowed_domains_are_used():
+    from app import web
+
+    domains = ["gardencity.university"]
+    assert web.is_allowed("https://www.gardencity.university/admissions/", domains)
+    assert not web.is_allowed("https://gardencity.university.evil.com/", domains)
+    assert not web.is_allowed("https://www.shiksha.com/gcu", domains)
+    text = "[07] University hostel information and tariffs\nhttps://www.gardencity.university/campus-life/accommodation/\n[19] Reviews\nhttps://www.shiksha.com/x"
+    assert web.source_links([text], domains) == [("[07] University hostel information and tariffs", "https://www.gardencity.university/campus-life/accommodation/")]
+    title, body = web.html_to_text("<html><title>Hostel</title><script>x()</script><p>Rooms cost 1 lakh.</p><footer>f</footer></html>")
+    assert title == "Hostel" and body == "Rooms cost 1 lakh."

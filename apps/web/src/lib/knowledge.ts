@@ -11,7 +11,7 @@ export type KnowledgeDoc = {
   source: "kt" | "upload" | "manual" | "sample";
 };
 
-export type Citation = { n: number; doc_id: string; title: string; version: number; snippet: string };
+export type Citation = { n: number; doc_id: string; title: string; version: number; snippet: string; url?: string | null };
 export type AskResult = { answer: string; citations: Citation[]; grounded: boolean; provider: string; model?: string | null; usage?: Record<string, number> };
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 

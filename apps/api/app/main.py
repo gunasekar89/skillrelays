@@ -13,8 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from . import llm
-from .retrieval import Chunk, Hit, best_sentences, chunk_document, coverage, idf_table, search
+from . import llm, web
+from .retrieval import Chunk, Hit, best_sentences, chunk_document, coverage, idf_table, search, tokenize
 
 log = logging.getLogger("skillrelays")
 
@@ -66,6 +66,7 @@ class Citation(BaseModel):
     title: str
     version: int
     snippet: str
+    url: str | None = None
 
 
 class AskResponse(BaseModel):
@@ -228,6 +229,41 @@ def _answer_to_check(req: AskRequest) -> tuple[Document, int, list[tuple[str, st
     return (doc, index, sections) if index < len(sections) else None
 
 
+CHAT = re.compile(r"^\W*(hi|hello|hey|thanks?|thank you|ok(ay)?|good (morning|afternoon|evening)|bye|quiz me|who are you|what can you do)\b[\w\s!.,?]{0,20}$", re.I)
+SCOPE_NAME = os.getenv("WEB_LOOKUP_NAME", "Garden City University")
+
+
+def _wants_lookup(question: str) -> bool:
+    q = question.strip()
+    return not CHAT.match(q) and not TRAINING_STEER.match(q) and len(tokenize(q)) >= 1
+
+
+async def _web_answer(req: AskRequest, provider: llm.Provider) -> AskResponse | None:
+    """Answer from the organisation's official website when the documents don't cover the question."""
+    try:
+        passages = await web.lookup(req.question, [d.text for d in req.documents])
+    except Exception as exc:  # the website being down must not break the chat
+        log.warning("Website lookup failed: %s", exc)
+        return None
+    citations = [Citation(n=i + 1, doc_id=p.url, title=p.title, version=0, snippet=p.text[:400], url=p.url) for i, p in enumerate(passages)]
+    sources = "\n\n".join(f"[{c.n}] {c.title} ({c.url}):\n{p.text}" for c, p in zip(citations, passages)) or "(no website passages found)"
+    instruction = (
+        f"The training documents don't answer this. Below are passages from the official website of {SCOPE_NAME}. "
+        f"If the message is not about {SCOPE_NAME}, reply only: \"I can only help with questions about {SCOPE_NAME}.\" "
+        "Otherwise answer only from the website passages, citing them like [1], and start with: "
+        "\"This isn't in the training document, but the official website says:\" "
+        "If the passages don't answer it, say you couldn't find it in the training document or on the official website."
+    )
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}, *_history(req, turns=2)]
+    messages.append({"role": "user", "content": f"{instruction}\n\nWebsite passages:\n{sources}\n\nMessage: {req.question}"})
+    try:
+        answer, usage = await llm.chat(provider, messages)
+    except Exception as exc:
+        log.warning("LLM call failed for website answer: %s", exc)
+        return None
+    return AskResponse(answer=answer, citations=_cited(answer, citations), grounded=False, provider=f"{provider.name} + official website", model=provider.model, usage=usage)
+
+
 @app.post("/api/ask", response_model=AskResponse)
 async def ask(req: AskRequest) -> AskResponse:
     provider = llm.configured_provider()
@@ -255,6 +291,11 @@ async def ask(req: AskRequest) -> AskResponse:
         answer = _simulated_answer(query, hits, chunks, citations)
         return AskResponse(answer=answer, citations=_cited(answer, citations), grounded=True, provider="Simulated")
 
+    if not grounded and _wants_lookup(req.question):
+        found = await _web_answer(req, provider)
+        if found:
+            return found
+
     # Chat or training requests with no keyword match still go to the model, with the start of each
     # document as teaching material and the outline to follow.
     context_hits = hits or [Hit(c, 0.0) for d in req.documents for c in [x for x in chunks if x.doc_id == d.id][:2]][:4]
@@ -270,6 +311,10 @@ async def ask(req: AskRequest) -> AskResponse:
         answer = _simulated_answer(query, hits, chunks, citations) if grounded else NOT_FOUND
         return AskResponse(answer=answer, citations=_cited(answer, citations), grounded=grounded, provider=f"Simulated ({provider.name} unavailable)")
 
+    if re.search(r"couldn.t find", answer, re.I) and _wants_lookup(req.question):
+        found = await _web_answer(req, provider)
+        if found:
+            return found
     return AskResponse(answer=answer, citations=_cited(answer, citations), grounded=grounded, provider=provider.name, model=provider.model, usage=usage)
 
 

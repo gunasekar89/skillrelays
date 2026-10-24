@@ -183,9 +183,14 @@ export default function Assistant() {
                       {m.result.citations.map((c) => (
                         <details key={c.n} className="rounded-lg bg-white text-xs ring-1 ring-slate-200">
                           <summary className="cursor-pointer px-3 py-1.5 text-slate-600">
-                            <span className="font-semibold text-brand">[{c.n}]</span> {c.title} · v{c.version}
+                            <span className="font-semibold text-brand">[{c.n}]</span> {c.title} · {c.url ? "Official website" : `v${c.version}`}
                           </summary>
                           <p className="border-t border-slate-100 px-3 py-2 text-slate-500">{c.snippet}…</p>
+                          {c.url && (
+                            <a href={c.url} target="_blank" rel="noreferrer" className="block break-all border-t border-slate-100 px-3 py-1.5 text-brand underline">
+                              {c.url}
+                            </a>
+                          )}
                         </details>
                       ))}
                       <div className="text-[11px] text-slate-400">
