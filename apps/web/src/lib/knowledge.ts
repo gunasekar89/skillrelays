@@ -1,6 +1,6 @@
 // Company knowledge base for the demo: documents live in this browser's localStorage,
 // and questions go to the API (real AI when configured) with an offline fallback.
-import { generateContent, sampleTranscript, type KtSession } from "./demo";
+import { generateContent, type KtSession } from "./demo";
 
 export type KnowledgeDoc = {
   id: string;
@@ -34,16 +34,8 @@ export function docFromSession(s: KtSession): string {
 // Same id for the same session title, so republishing (or publishing the sample) updates rather than duplicates.
 const sessionDocId = (title: string) => `kt-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
-const seed = (): KnowledgeDoc[] => [
-  {
-    id: sessionDocId("Credit Card Support — New Joiner KT"),
-    title: "Credit Card Support — New Joiner KT",
-    text: docFromSession({ title: "", trainer: "", transcript: sampleTranscript, durationSec: 0, source: "sample" }),
-    version: 1,
-    updatedAt: new Date().toISOString(),
-    source: "sample",
-  },
-];
+// New browsers start empty; the bundled document below is added on first visit.
+const seed = (): KnowledgeDoc[] => [];
 
 export function loadDocs(): KnowledgeDoc[] {
   try {
@@ -143,19 +135,21 @@ function askOffline(question: string, docs: KnowledgeDoc[]): AskResult {
 }
 
 const GUIDE_FLAG = "sr.guide-added";
+const BUNDLED = { id: "sample-gcu-report", title: "Garden City University — Research Dossier 2026", path: "/samples/gcu-research-report-2026.txt" };
 
-// Short fingerprint of the bundled text, so a newer guide replaces the stored copy (as a new version).
+// Short fingerprint of the bundled text, so a newer document replaces the stored copy (as a new version).
 const fingerprint = (t: string) => [...t].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) | 0, 0).toString(36);
 
-/** Add the bundled fresher guide, and refresh it when the bundled file changes. */
+/** Add the bundled document, refresh it when the file changes, and drop earlier bundled samples. */
 export async function addBundledGuide(docs: KnowledgeDoc[]): Promise<KnowledgeDoc[] | null> {
   try {
-    const r = await fetch("/samples/acme-bank-cards-fresher-guide.txt", { cache: "no-store" });
+    const r = await fetch(BUNDLED.path, { cache: "no-store" });
     if (!r.ok) return null;
     const text = await r.text();
     if (localStorage.getItem(GUIDE_FLAG) === fingerprint(text)) return null;
     localStorage.setItem(GUIDE_FLAG, fingerprint(text));
-    const next = upsertDoc(docs, { id: "sample-fresher-guide", title: "Acme Bank Cards — Complete Fresher Training Guide", text, source: "sample" });
+    const kept = docs.filter((d) => d.source !== "sample" || d.id === BUNDLED.id);
+    const next = upsertDoc(kept, { id: BUNDLED.id, title: BUNDLED.title, text, source: "sample" });
     saveDocs(next);
     return next;
   } catch {

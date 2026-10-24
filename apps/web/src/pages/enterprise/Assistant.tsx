@@ -17,7 +17,7 @@ import { speak, speechRecognitionSupported, stopSpeaking, useSpeechToText } from
 
 type Message = { role: "user" | "assistant"; content: string; result?: AskResult };
 
-const starters = ["Start my training", "What do I do when a card is lost or stolen?", "How do I create a ticket?", "When should I escalate a call?"];
+const starters = ["Start my training", "What are the B.Tech fees at Garden City University?", "How do admissions work?", "What are the MBA placement results?"];
 
 export default function Assistant() {
   const [docs, setDocs] = useState<KnowledgeDoc[]>(loadDocs);

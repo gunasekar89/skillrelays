@@ -1,0 +1,480 @@
+GARDEN CITY
+UNIVERSITY
+Bengaluru, India | Comprehensive Online Research Dossier
+Research date: 24 October 2026
+Website examined: https://www.gardencity.university/
+Scope: legal standing, accreditation and ratings, programmes, published tuition/hostel/transport costs, admissions, scholarships, placements, PhD, facilities, reviews, governance, contacts, and evidence-based cautions.
+At a glance
+Description
+2013
+State university-enabling legislation
+1992
+Educational group history
+9
+Schools advertised on official website
+2026
+Latest cited NIRF management submission
+30
+Linked sources / primary and independent records
+Important: This is an independent research synthesis, not a prospectus issued by GCU. Published fees and offerings can change. The report deliberately separates direct evidence, institutional claims, independently hosted data, and unresolved items.
+
+Evidence protocol. The strongest sources used here are university-published tables and 2026 NIRF submissions, plus the UGC historical list and QS I-GAUGE entry. Reviews are treated as anecdotal and platform-specific. An item appearing on an official webpage is not automatically proof of a current programme intake, current statutory council approval, or university-wide placement outcome.
+Fee method. Programme tuition totals in this document are calculated by summing the instalments in the newer table near the bottom of the university domestic fee webpage. Older fee tables remain on the same page, and no explicit academic-year label is attached to the newer domestic table; therefore all totals are published indicative calculations, not confirmed 2026–27 quotations. Deposits, examinations, consumables, hostel, travel and personal expenses are generally excluded unless shown separately.
+
+1. Executive summary and rapid verdict
+Garden City University (GCU) is a private university in Bengaluru created under Karnataka State Act No. 47 of 2013, drawing on a Garden City education group founded in 1992. It offers undergraduate, postgraduate and PhD options across commerce, engineering, computing, life sciences, media, languages, health sciences and other subjects. The university operates an Old Madras Road campus and a Student Knowledge Park in the Hoskote area. [01][02]
+• Legitimacy: UGC historical list explicitly includes Garden City University as a Karnataka private university;
+this supports university-level identity, but does not establish every programme-specific professional approval.
+[03]
+• External rating: QS I-GAUGE lists an overall Gold rating; it is a rating and should not be confused with a QS World University Ranking place. [15][16]
+
+• NAAC caution: the university’s own history attaches the historic NAAC A grade to Garden City College of Science and Management Studies, not unambiguously to a currently accredited Garden City University. Request GCU’s own current NAAC certificate and validity. [02]
+• Published MBA management outcomes: NIRF 2026 management submission gives 90 placed of 93 graduates for academic year 2024–25, ₹7.50 lakh median package and 3 proceeding to higher education. These numbers are not all-course or engineering-wide results. [11]
+• Cost: official domestic tuition table lists about ₹14.40 lakh for some four-year B.Tech/BE streams, ₹5.94 lakh for MBA and ₹3.32 lakh for MCA (calculated totals, excluding extras). [05]
+• Research: PhD pathways include part-time and full-time; the PhD page lists an exam, research presentation and interview process. [24] Who should consider GCU?
+A prospective student can consider GCU when a particular course’s curriculum, individual faculty and labs, location, affordability, and written placement evidence meet their goals. A decision should be course-specific.
+For high-cost professional programmes, independent verification of the exact course approval, graduating cohort outcomes and complete four-year budget is essential.
+
+2. Identity, addresses and historical development
+Item
+Verified/published information
+Legal name
+Garden City University
+Type
+Private university established by state legislation
+Parent legacy
+Garden City Education Trust / Garden City Group of Institutions (1992)
+Enabling law
+Karnataka State Act No. 47 of 2013
+Assent / gazette
+Governor’s assent 26 March 2013; publication 12 April 2013 per GCU
+Official main site
+www.gardencity.university
+Online admissions
+admissions.gardencity.university
+Student Knowledge Park
+Kolar Highway, adjacent to Volvo Manufacturing Plant, Hoskote, Bengaluru 562122 Old Madras Road campus 16th KM, Old Madras Road, Bengaluru 560049 City office GCC House, No. 340, Indiranagar Double Road, 1st Stage, Bengaluru 560038 Campus area QS I-GAUGE profile reports 50 acres; university says future/expanded campus on 50 acres The university’s historical timeline connects the 1992 foundation and pre-university Garden City College with later developments: NAAC events in 2005, 2010 and 2016, passage of the 2013 Act and the 2017 GCU launch.
+The timeline is a history of the larger institution; it should not be interpreted as “university since 1992.” [02][29]
+
+
+3. Recognition, accreditation, ratings and governance
+Regulatory and quality distinctions
+Evidence
+Correct interpretation
+UGC / degree-awarding
+status
+The UGC archived university list names GCU, dated 24 June 2013. GCU’s own site also asserts recognition. Confirm any current regulatory status on the live UGC portal. [03][28] Karnataka State Act The university was established through its own 2013 state act, rather than as an affiliated college.
+[02]
+Historic NAAC A grade
+Explicitly described by GCU as a grade earned by Garden City College before/through the group’s institutional evolution; a GCU university-level current NAAC certificate was not independently established. [02] QS I-GAUGE Gold overall rating on the QS I-GAUGE profile. This is an institutional rating, not a global rank position.
+[15][16]
+NIRF
+GCU publishes datasets for 2023–26. Participation/data disclosure is not itself proof of a ranked position. [12] Professional courses Require latest written approval / compliance status from the relevant statutory council or regulator, where applicable, for the precise course and intake.
+Governance and published institutional snapshot
+The currently accessible university leadership page names Chancellor Dr Joseph V G, Vice Chancellor Dr M.
+Ramachandra Gowda, Pro Vice Chancellor Dr Sibi Shaji, Registrar Dr Sheeja M S, and Strategy and Planning Director Dr Christo V Joseph. It also publishes governing boards, management, academic council and finance committee membership. Leadership is time-sensitive: a separate older biography page still displays earlier office-holders. [04] The QS I-GAUGE institution profile displays 3,533+ students, 107+ faculty, 1:34 student–faculty ratio, 50-acre campus, 23 UG and 15 PG courses. These are profile statistics of unspecified measurement date and may lag the current intake. The university’s marketing site also advertises 45,000+ alumni and 500+ recruiters; both should be treated as university-reported cumulative claims. [15][01]
+
+4. Academic schools and programme catalogue
+The current navigation of the university homepage organizes instruction around nine schools. The titles below reflect advertised programme names, not guaranteed admission availability for a particular intake. Track labels and course names are occasionally inconsistent between the course directory and the fee page. [01] School Level Courses described by GCU Commerce & Management UG B.Com; B.Com Computer Application; B.Com International Accounting & Finance with ACCA (UK); B.Com Tourism; BBA; BBA Business Analytics; BBA Aviation Management; BBA Tourism Commerce & Management PG / PhD MBA; PhD in Management Dr A P J Abdul Kalam Engineering UG B.Tech Computer Science; BE Computer Science; B.Tech IT; BE Information Science; B.Tech Robotics; B.Tech Electronics
+
+School
+Level
+Courses described by GCU
+Engineering
+PG
+M.Tech CSE; M.Tech VLSI; Digital Twin Technology and Intelligent Systems;
+Quantum Technology and Computing; Silicon Carbide (SiC); Photonic Integrated Circuits (some advertised with industry association) Computational Sciences & IT UG BCA (AI/ML emphasis); B.Sc Data Science & Cyber Security; B.Sc IT with Computer Application (AI/ML) Computational Sciences & IT PG / PhD MCA; M.Sc IT (AI & ML) / Data Science & Cloud Computing; M.Sc Data Science & Analytics; PhD in Computational Sciences and IT Sciences UG B.Sc Biotechnology-Biochemistry-Genetics; Bioinformatics-Statistics-Data Science;
+Forensic Science-Chemistry-Genetics; Food Science &
+Technology-Biochemistry-Microbiology
+Sciences
+PG / PhD
+M.Sc Biotechnology, Molecular & Human Genetics/Clinical Embryology,
+Microbiology, Forensic Science, Bioinformatics, Biochemistry, Biostatistics, Molecular Oncology, Digital Forensics & AI Security; PG certificate in Clinical Embryology; PhD in Biotechnology, Microbiology and Forensic Science Media Studies UG / PG / PhD B.Sc Visual Communication; BA Journalism/Psychology; B.Des appears in main menu; MA Journalism & Mass Communication; M.Sc Visual Communication (Electronic Media); PhD Journalism Languages UG / PG / PhD BA English with Computational Linguistics; BA English and Psychology; MA English with Computational Linguistics; PhD English Social Sciences UG / PG / PhD B.Sc Psychology; M.Sc Psychology; PhD Psychology Professional Studies UG / PG / PhD Bachelor of Hotel Management; B.Sc Fashion & Apparel Design; M.Sc Fashion & Apparel Design; PhD Hospitality Management; PhD Fashion & Apparel Design Health Science UG / PG / PhD Bachelor of Physiotherapy (BPT); Master of Physiotherapy (MPT); PhD Physiotherapy Newer / specialized courses - verify live intake The homepage advertises M.Sc Digital Forensics and AI Security, newer M.Tech niche specializations (Quantum Technology, SiC, Digital Twin and Photonic Integrated Circuits) and industry-associated specializations. Several do not appear in the domestic fee table inspected. Obtain the current brochure, curriculum, seat matrix, faculty roster, regulator status and written fee quotation for these streams. [01][05]
+
+5. Undergraduate fees — official published instalment calculations
+The domestic/NRI fee page contains an older fee block followed by a newer, higher-fee block, with no clear “2026–27” label on the newer table. The following are arithmetic totals for the newer published instalments and are not final admission offers. Most bachelor’s programmes show six instalments; four-year degrees show eight. [05] Programme 1st inst.
+Remaining inst.
+Total tuition
+B.Com
+₹36,000
+₹66,000 × 5
+₹366,000
+B.Com (ACCA)
+₹37,000
+₹82,000 × 5
+₹447,000
+B.Com Computer Application
+₹37,000
+₹82,000 × 5
+₹447,000
+
+Programme
+1st inst.
+Remaining inst.
+Total tuition
+B.Com Tourism
+₹34,000
+₹42,000 × 5
+₹244,000
+BBA
+₹45,000
+₹72,000 × 5
+₹405,000
+BBA Aviation Management
+₹45,000
+₹72,000 × 5
+₹405,000
+BBA Business Analytics
+₹45,000
+₹72,000 × 5
+₹405,000
+BBA Tourism
+₹45,000
+₹45,000 × 5
+₹270,000
+BA English / Computational Linguistics
+₹34,000
+₹42,000 × 5
+₹244,000
+BA Journalism / Psychology
+₹34,000
+₹42,000 × 5
+₹244,000
+BA English / Psychology
+₹34,000
+₹42,000 × 5
+₹244,000
+B.Sc Psychology
+₹55,000
+₹45,000 × 5
+₹280,000
+B.Sc Visual Communication
+₹36,000
+₹66,000 × 5
+₹366,000
+Bachelor of Hotel Management
+₹36,000
+₹66,000 × 7
+₹498,000
+B.Sc Fashion & Apparel Design
+₹33,000
+₹62,000 × 5
+₹343,000
+Bachelor of Design
+₹75,000
+₹75,000 × 7
+₹600,000
+BCA
+₹65,000
+₹72,000 × 5
+₹425,000
+B.Sc Data Science & Cyber Security
+₹45,000
+₹72,000 × 5
+₹405,000
+BPT
+₹150,000
+₹100,000 × 7
+₹850,000
+B.Sc Biotechnology/Biochemistry/Genetics
+₹36,000
+₹66,000 × 5
+₹366,000
+B.Sc Forensic Science/Chemistry/Genetics
+₹66,000
+₹91,000 × 5
+₹521,000
+B.Sc Food Science & Technology
+₹36,000
+₹66,000 × 5
+₹366,000
+B.Sc Bioinformatics/Data Science
+₹36,000
+₹66,000 × 5
+₹366,000
+B.Tech Computer Science
+₹180,000
+₹180,000 × 7
+₹1,440,000
+BE Computer Science
+₹180,000
+₹180,000 × 7
+₹1,440,000
+B.Tech Information Technology
+₹180,000
+₹180,000 × 7
+₹1,440,000
+BE Information Science
+₹180,000
+₹180,000 × 7
+₹1,440,000
+B.Tech Robotics
+₹180,000
+₹180,000 × 7
+₹1,440,000
+B.Tech Electronics
+₹100,000
+₹100,000 × 7
+₹800,000
+Extra items on same fee page: ₹2,000 non-refundable/non-adjustable registration, ₹5,000 caution deposit (₹3,000 stated refundable and ₹2,000 retained for alumni association), examination fees per semester about ₹3,000 UG or ₹3,500 engineering, and a ₹19,000 kit charge for hotel management. Check whether the registration charge and tuition quote apply to your specific admission route. [05]
+
+
+6. Postgraduate, PhD and international fee schedules
+Postgraduate courses: indicative full-programme tuition
+Programme
+1st
+Next 3 each
+Tuition total
+M.Sc Bioinformatics
+₹77,000
+₹67,000 × 3
+₹278,000
+M.Sc Molecular & Human Genetics/Clinical Embryology
+₹37,000
+₹87,000 × 3
+₹298,000
+M.Sc Forensic Science
+₹66,000
+₹96,000 × 3
+₹354,000
+M.Sc Biotechnology
+₹37,000
+₹87,000 × 3
+₹298,000
+M.Sc Microbiology
+₹37,000
+₹87,000 × 3
+₹298,000
+Master of Physiotherapy
+₹250,000
+₹150,000 × 3
+₹700,000
+M.Sc IT
+₹65,000
+₹89,000 × 3
+₹332,000
+MCA
+₹65,000
+₹89,000 × 3
+₹332,000
+M.Sc Data Science and Analytics
+₹65,000
+₹89,000 × 3
+₹332,000
+M.Sc Fashion & Apparel Design
+₹36,000
+₹66,000 × 3
+₹234,000
+M.Sc Psychology
+₹36,000
+₹66,000 × 3
+₹234,000
+MBA
+₹126,000
+₹156,000 × 3
+₹594,000
+MA Journalism & Mass Communication
+₹36,000
+₹66,000 × 3
+₹234,000
+M.Sc Visual Communication
+₹36,000
+₹66,000 × 3
+₹234,000
+MA English / Computational Linguistics
+₹34,000
+₹44,000 × 3
+₹166,000
+M.Tech CSE
+₹100,000
+₹100,000 × 3
+₹400,000
+M.Tech VLSI Design
+₹100,000
+₹100,000 × 3
+₹400,000
+Most PG rows above list four instalments. The MBA total is ₹5,94,000; MCA/M.Sc IT/M.Sc Data Science and Analytics each total ₹3,32,000; M.Tech CSE/VLSI each total ₹4,00,000. Add exams, deposit, accommodation and other charges. [05] PhD cost model GCU lists a ₹10,000 enrolment fee and ₹5,000 caution deposit, plus ₹50,000 for each half-yearly/numbered instalment. Its page describes six instalments for the minimum three-year full-time route and eight for the minimum four-year part-time route. It also displays ninth and tenth instalments for students who continue longer and a ₹5,500 coursework exam fee. Fee payment continues until thesis submission. [06] Mode Tuition instalments Tuition sum Illustrative pre-thesis cash outlay Minimum full-time, 3 years 6 × ₹50,000 ₹3,00,000 ≈ ₹3,20,500 with enrolment, caution and one listed coursework exam Minimum part-time, 4 years 8 × ₹50,000 ₹4,00,000 ≈ ₹4,20,500 with same add-ons
+
+Mode
+Tuition instalments
+Tuition sum
+Illustrative pre-thesis cash outlay
+Beyond minimum
+9th / 10th instalment
+listed
+₹50,000 each
+Additional fees, synopsis/consumables and
+possible extensions not included
+International students
+A separate international schedule is priced in USD and opens with a $100 registration fee. Some instalments explicitly carry older dates from June 2023 onward, so it cannot be treated as a validated 2026–27 fee offer.
+Directly request an updated USD offer, foreign-national/NRI category definitions, visa and FRRO paperwork, insurance, hostel, deposits and refund terms. [27]
+
+7. Admissions, eligibility, scholarships and financial aid
+Application steps
+Step
+GCU website sequence
+1
+Register on official online admissions portal and verify email.
+2
+Complete application and upload/submit required documents.
+3
+Receive a conditional offer, if selected.
+4
+Meet the offer conditions, including academic/document checks.
+5
+Receive the enrolment letter, pay only via verified university channels and keep receipts.
+GCU’s navigation also describes an interview as part of admissions; exact selection criteria, recognized entrance examinations, cutoff, document requirements and whether an interview applies differ by programme.
+Applicants should verify course-specific eligibility, seats and deadlines with admissions directly. [09] Indicative eligibility checkpoints (not universal thresholds)
+• UG: typically 10+2/PUC completion plus discipline-related subject prerequisites; technical and health professional programmes may have additional subjects and requirements.
+• PG: a relevant recognized bachelor’s degree; bridge subjects / minimum score may apply by programme.
+• PhD: master’s degree in relevant area; GCU publishes a 55% / 5.5 CGPA minimum with stated category relaxations, entrance examination, research presentation and interview. [24] Scholarship categories and payments The university names scholarships for academics/talent, sports, cultural achievements and alumni referrals, and a scholarship contact at scholarship@gardencity.university. Public pages inspected do not establish a universal percentage discount or automatic eligibility. Obtain a written, course-specific award and renewal requirements. [10] GCU fee pages mention interest-free EMI partners, but partner names vary across its sub-sites (Finance-Peer/SchoolFe versus Jodo/Avanse). This could reflect different update cycles. Do not assume an EMI lender or zero-interest offer is currently active without checking the actual provider contract, processing fee, late-payment penalty and lender identity. [05][09]
+
+
+8. Placement outcomes, recruiter claims and practical ROI
+Official 2026 NIRF management disclosure
+Graduating year
+Graduates
+Placed
+Higher studies
+Median salary
+2022–23
+57
+47
+10
+₹6,00,000
+2023–24
+71
+66
+5
+₹6,40,000
+2024–25
+93
+90
+3
+₹7,50,000
+This table comes from the Management, PG two-year category in the NIRF 2026 submission. For 2024–25, 90/93 is approximately 96.8% of the reported graduating group; excluding the 3 identified as higher-studies candidates, the remaining 90/90 were listed as placed. Some aggregator sites therefore display “100%” placement. Neither calculation can be generalized to all programmes or equated with the entire MBA intake.
+[11][19]
+Placement process and employers
+GCU describes placement coordination through its Industry Institute Partnership Cell, campus recruitment drives, a job fair called “Launch,” a placement/ERP module that distributes relevant job descriptions, skills training and an official recruiters gallery. A recruiter’s logo signals claimed historical contact, not a guarantee of current on-campus hiring or number of offers. [13][14] Careers360 cites names including Google, Cognizant, Axis Bank, Biocon, Deloitte, NDTV, LG, Paytm, Infosys and Siemens as recruiter examples. Treat these as third-party directory claims unless supported by company-wise current offers, hire counts and role/salary breakdowns. [19] What constitutes robust placement evidence?
+• A programme-by-programme audited table: admitted, eligible, opted in, placed, higher studies, off-campus outcomes and unmatched graduates.
+• Median rather than only highest package; fixed compensation separated from variable pay and internships.
+• Last three cohorts of data and named employer / role / compensation distributions (redacted appropriately).
+• Distinction between a company recruiting any university student and recruiting in the target course.
+Budget and return-on-investment illustration
+Consider a published four-year B.Tech CSE tuition of ₹14.40 lakh. Adding eight engineering semester exams at ₹3,500 (₹28,000), registration ₹2,000 and caution deposit ₹5,000 yields about ₹14.75 lakh cash budget before any hostel, transport, laptop, food or personal costs. This is not a full cost of attendance and is only valid if the listed fee schedule remains unchanged. On-campus housing could substantially increase the total. [05][07]
+
+
+9. PhD and research routes
+GCU advertises doctoral study in Management, Journalism, Hospitality Management, Fashion & Apparel Design, Biotechnology, Microbiology, Forensic Science, English, Computational Sciences & IT, Psychology and Physiotherapy. The separate research/admissions flyer also lists electronics engineering and computer science engineering, but the live homepage doctoral menu differs. Verify supervisor approvals and field-specific availability directly. [01][24][25] Doctoral selection and working-professional considerations
+• Published stages: research entrance exam (Criteria I), supervisor interaction, proposal presentation (Criteria II), personal interview (Criteria III), composite merit and provisional admission. [24]
+• Published eligibility: 55% / 5.5 CGPA master’s threshold with defined relaxation categories. [24]
+• The connected 2025–26 flyer says entrance examination of 100 marks, 50% research aptitude and 50% subject expertise, 120-minute multiple-choice format, and mentions NET exemptions subject to its 2024 UGC reference. These flyer details may be outdated for 2026–27. [25]
+• The same old flyer requests an employer NOC for employed candidates and mentions department work obligations. These must be reconfirmed against current regulations and working-professional PhD policy. [25]
+• Request written confirmation of part-time residency requirements, daytime/on-campus attendance, research ethics approval, conference/publication expectations, supervisor capacity, cloud/computing lab infrastructure and fees beyond minimum registration.
+Official research contacts
+Research enquiries: gcuresearch@gardencity.university or gcuresearch@gcu.edu.in; central enquiry:
++91 90199 21992. The official PhD page links regulations, entrance syllabi, research supervisors and scholar listings. [24]
+
+10. Campus, hostels, transport and student life
+Infrastructure and clubs
+GCU describes modern classrooms, laboratories, a library with books/journals/dissertations, sports facilities, Wi-Fi and campus housing. It advertises 35 student clubs spanning sports, career, cultural and professional activities. Actual lab access, functioning equipment and facility availability should be tested by visiting the teaching campus for the target programme. [20][21] Official accommodation fee page Location / hostel Room type Published quoted charge Girls: Campus A/B Double ₹60,000 Girls: Venus A Double / Single ₹65,000 / ₹1,25,000 Girls: Venus B Double / Single ₹80,000 / ₹1,25,000 Boys: Galaxy A/B Double / Single ₹80,000 / ₹1,25,000 Student Knowledge Park Double / Single ₹1,45,000 / ₹1,80,000
+
+The accommodation page labels the amounts as one-payment options, but the period, mess/catering inclusion and availability should be reconfirmed. Electricity is marked extra for several options; the page indicates a ₹25,000 hostel deposit for relevant single rooms. It also describes lockers, CCTV, 24/7 security, laundry, power backup, medical access and counselling on call. Do not combine these hostel prices mechanically with the conflicting simplified hostel amounts on the older tuition block. [07] Transport routes and published charges Stated route distance Quoted transport fee 0–10 km ₹34,000 11–20 km ₹39,000 21–30 km ₹44,000 31–40 km ₹49,000 Published pick-up corridors include Hebbal, Indiranagar and Whitefield for both campuses, with Hoskote/Kolar/Chintamani/Malur indicated for selected routes. The transport page says payment may be made in two instalments. The tariff period is not explicit, so ask whether rates are annual, semester-based or subject to revision. [08]
+
+11. Independent reviews — signal, not scientific proof
+Platform
+Overall
+Volume
+Selected dimensions
+Shiksha
+4.0 / 5
+121 reviews (page snapshot)
+Placement subscore: 3.5/5; infrastructure: 4.3/5;
+campus life: 4.3/5.
+Careers360
+4.1 / 5
+18 reviews (page snapshot)
+Placements: 3.6/5; infrastructure: 4.3/5;
+value-for-money: 3.1/5.
+Recurring positive themes in surfaced reviews include grounds and campus life, extracurricular opportunities and some supportive staff. Recurring criticisms include uneven lab access, academic teaching quality in some departments, weak or inconsistent placements, and cost/value concerns. These are individual, self-selected testimonies, may reflect older cohorts, and are not a validated institutional performance score. [17][18] Programme matters more than the blended rating: a BCA experience is not a reliable proxy for MBA, an M.Sc laboratory programme, or a PhD supervisor. Speak privately to two current students and two recent graduates of the same programme and campus, ideally without the admissions office present.
+
+12. Latest notices and online-data quality warnings
+Notices visible on / around 24 October 2026
+• The home page carries an October 2026 convocation notice and October/November 2026 examinations/timetables. [01]
+• It says UG 2026–27 admissions close 30 September 2026 and engineering admissions close 15 October 2026;
+these dates have passed at the date of this report. Confirm late admission, next intake or any extension before
+
+payment. [01]
+• The homepage shows a “PhD Programme Admission – 2026–2027” link but the linked PDF inspected is labelled 2025–2026 and sets 1 October 2025 as its deadline. Treat the live link as an outdated/incorrectly associated file until the university supplies the new notice. [25]
+• Some page headers still carry a 10 October 2025 PG deadline, despite other 2026 updates. [01]
+• The official international fee page contains dated instalments beginning in 2023; the domestic fees page retains multiple inconsistent generations of tables. [05][27]
+• The official annual-report page links reports through 2025–26, but this research did not audit the complete large 2025–26 annual report. It is offered as a primary source for further verification. [23] Evidence gaps / questions worth resolving before enrolment Category Request/verify Recognition Current GCU-level NAAC certificate and course-specific approvals; exact campus and allowed intake.
+Fees
+Signed 2026–27 fee quote by instalment and all extra charges, refund deadlines and loan contract.
+Placement
+Target programme’s graduating cohort data, median CTC, employer list with hired counts and role details.
+Faculty
+Actual current faculty teaching chosen course, student/faculty ratio by department and recent turnover.
+Infrastructure
+Visit dedicated labs, library and the exact Hoskote/OMR campus used by the batch.
+PhD
+Supervisor consent, admissions notice for correct year, current entrance policy, NOC, minimum residency and entire fee horizon.
+Housing
+Room type, food inclusion, electricity, security deposit, refund rules, hostel commute and emergency coverage.
+Rankings
+Avoid unsupported “NIRF ranked” wording: ask for an exact published rank, category and year.
+
+13. Contact, official links and decision checklist
+Purpose
+Published contact
+Central admissions
++91 90199 21992
+Old Madras Road campus
++91 (80) 66487600
+General enquiries
+pro@gardencity.university / pro@gcu.edu.in
+Scholarships
+scholarship@gardencity.university
+PhD/research
+gcuresearch@gardencity.university / gcuresearch@gcu.edu.in
+Application portal
+https://admissions.gardencity.university/
+Main website
+https://www.gardencity.university/
+PhD details
+https://www.gardencity.university/research/phd/
+GCU grievance email
+pro@gardencity.university
+
+Recommended action before paying an admission deposit
+• Ask for the correct academic-year admission prospectus in PDF and a fee quote with a university-authorized seal or verifiable official email trail.
+• Check exact award nomenclature, duration, classroom campus, eligibility, regulatory conditions and recognized modes of delivery.
+• Collect cohort-level placement details from the exact department for the last three years.
+• Ask for written refund rules, caution deposit treatment, hostel and food tariffs, transport routes and examination fees.
+• Meet academic staff; assess lab access and attendance policy; speak with students independent of marketing staff.
+• For research students, confirm a named supervisor, research infrastructure, employer NOC requirement, ethics and a written realistic completion plan.
+Assessment: GCU appears to be a legally established private university with wide programme offerings and an independent Gold QS I-GAUGE rating. Its published information is broad, but some admissions and financial pages mix current and outdated details. A decision should be made only after verification of the specific programme, up-to-date written charges and programme-specific outcomes.
+
+14. Source register — live hyperlinks
+All URLs below were available through search/opened source results during this research. Linked items may change over time. Official university pages are marked by their domain; independent ratings/reviews are secondary signals; an archived UGC list should be cross-checked against the current portal.
+[01] Official university homepage / course directory
+https://www.gardencity.university/
+[02] About GCU and founding history
+https://www.gardencity.university/about-us/
+[03] UGC historic list of recognized universities (archival PDF)
+https://www.ugc.gov.in/oldpdf/total%20list.pdf
+[04] Leadership and governance
+https://www.gardencity.university/about-us/leadership-and-governance/
+[05] Domestic / NRI course fee tables
+https://www.gardencity.university/admissions/fee-structure/domestic-nri-fee-structure/ [06] PhD fee structure https://www.gardencity.university/research/phd/phd-fee-structure/ [07] University hostel information and tariffs https://www.gardencity.university/campus-life/accommodation/ [08] University transport routes and tariffs https://www.gardencity.university/campus-life/transport/ [09] Admission procedure https://www.gardencity.university/admissions/admission-procedure/ [10] Scholarships https://www.gardencity.university/scholarship/ [11] NIRF 2026 management submitted data (official university-hosted) https://www.gardencity.university/admin/uploads/NIRF-Management-Data-26.pdf [12] University NIRF disclosures portal https://www.gardencity.university/nirf/
+
+[13] University recruiters page
+https://www.gardencity.university/placements/placement-recruiters/
+[14] University placement process
+https://www.gardencity.university/placements/placement-process/
+[15] QS I-GAUGE independent profile
+https://www.igauge.in/institution/universities/garden-city-university
+[16] QS I-GAUGE rating explanation
+https://www.topuniversities.com/qs-igauge
+[17] Shiksha student reviews snapshot
+https://www.shiksha.com/university/garden-city-university-bangalore-52315/reviews [18] Careers360 student reviews snapshot https://www.careers360.com/university/garden-city-university-bangalore/reviews [19] Careers360 placement statistics https://www.careers360.com/university/garden-city-university-bangalore/placement [20] Official facilities overview https://www.gardencity.university/campus-life/facilities/ [21] Official clubs page https://www.gardencity.university/campus-life/student-clubs/ [22] International collaboration overview https://www.gardencity.university/about-us/international-collaboration/ [23] Official annual reports archive https://www.gardencity.university/about-us/gcu-annual-reports/ [24] PhD admissions programme details https://www.gardencity.university/research/phd/ [25] Linked official PhD advertisement (2025-26) https://www.gardencity.university/wp-content/uploads/2024/08/Ph.D.-Admissions.pdf [26] Grievance redressal committee https://www.gardencity.university/contact/grievance-redressal/ [27] International student fee schedule https://www.gardencity.university/admissions/fee-structure/international-fee-structure/ [28] UGC current state private university directory https://www.ugc.gov.in/universitydetails/university/?type=0wBmFB1Rb4JGVzq9UP%2FiOg%3D%3D [29] Current admissions portal https://admissions.gardencity.university/ [30] QS rating announcement at GCU https://www.gardencity.university/gold-rating-by-qs-rating/ Prepared 24 October 2026. Independent desktop research summary; no affiliation with Garden City University. Values marked “published” can be revised; no fee quote, admission offer, placement guarantee or regulatory certificate is created by this report.
