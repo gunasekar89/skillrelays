@@ -19,8 +19,17 @@ STOPWORDS = set(
 _TOKEN = re.compile(r"[a-z0-9][a-z0-9\-_.]*")
 
 
+def _stem(t: str) -> str:
+    # Crude suffix stripping so "takes", "taking" and "take" match. Good enough for keyword search.
+    for suffix in ("ing", "ed", "es", "s", "e"):
+        if len(t) > len(suffix) + 2 and t.endswith(suffix):
+            return t[: -len(suffix)]
+    return t
+
+
 def tokenize(text: str) -> list[str]:
-    return [t.strip(".") for t in _TOKEN.findall(text.lower()) if t.strip(".") not in STOPWORDS]
+    words = (t.strip(".") for t in _TOKEN.findall(text.lower()))
+    return [_stem(t) for t in words if len(t) > 1 and t not in STOPWORDS]
 
 
 @dataclass
@@ -43,12 +52,30 @@ def chunk_document(doc_id: str, title: str, text: str, size: int = 700, overlap:
     current: list[str] = []
     for s in sentences:
         if current and sum(len(x) for x in current) + len(s) > size:
-            chunks.append(Chunk(doc_id, title, " ".join(current)))
+            chunks.append(Chunk(doc_id, title, "\n".join(current)))
             current = current[-overlap:] if overlap else []
         current.append(s)
     if current:
-        chunks.append(Chunk(doc_id, title, " ".join(current)))
+        chunks.append(Chunk(doc_id, title, "\n".join(current)))
     return chunks
+
+
+def idf_table(chunks: list[Chunk]) -> tuple[Counter, int]:
+    return Counter(t for c in chunks for t in set(tokenize(c.text + " " + c.title))), len(chunks)
+
+
+def idf(term: str, df: Counter, n: int) -> float:
+    return math.log(1 + (n - df[term] + 0.5) / (df[term] + 0.5))
+
+
+def coverage(chunk: Chunk, query: str, df: Counter, n: int) -> float:
+    """Share of the query's information (idf-weighted) that this chunk contains."""
+    q = set(tokenize(query))
+    if not q:
+        return 0.0
+    present = set(tokenize(chunk.text + " " + chunk.title))
+    total = sum(idf(t, df, n) for t in q)
+    return sum(idf(t, df, n) for t in q if t in present) / total
 
 
 def search(chunks: list[Chunk], query: str, k: int = 4, k1: float = 1.4, b: float = 0.75) -> list[Hit]:
@@ -74,8 +101,34 @@ def search(chunks: list[Chunk], query: str, k: int = 4, k1: float = 1.4, b: floa
     return hits[:k]
 
 
-def best_sentences(text: str, query: str, limit: int = 2) -> list[str]:
+def best_sentences(texts: list[str], query: str, df: Counter, n: int, limit: int = 2) -> list[tuple[int, str]]:
+    """Most query-relevant sentences across the given texts, as (text index, sentence)."""
     q = set(tokenize(query))
-    sentences = [s.strip() for s in re.split(r"(?<=[.?!])\s+", text) if s.strip()]
-    scored = sorted(sentences, key=lambda s: len(q & set(tokenize(s))), reverse=True)
-    return [s for s in scored[:limit] if q & set(tokenize(s))]
+    scored: list[tuple[float, int, str]] = []
+    for i, text in enumerate(texts):
+        heading: set[str] = set()
+        for line in text.split("\n"):
+            line = line.strip()
+            # A line without closing punctuation is a heading: it gives context to the sentences under it.
+            if line and not re.search(r"[.?!\"”]$", line):
+                heading = set(tokenize(line))
+                continue
+            for s in re.split(r"(?<=[.?!])\s+(?=[A-Z0-9\"“])", line):
+                s = s.strip()
+                if len(s) < 15:
+                    continue
+                words = set(tokenize(s))
+                score = sum(idf(t, df, n) for t in q & words) + 0.8 * sum(idf(t, df, n) for t in (q & heading) - words)
+                if score > 0:
+                    scored.append((score, i, s))
+    scored.sort(key=lambda x: x[0], reverse=True)
+    if not scored:
+        return []
+    top = scored[0][0]
+    picked: list[tuple[int, str]] = []
+    for score, i, s in scored:
+        if len(picked) == limit or score < top * 0.6:
+            break
+        if all(s != p for _, p in picked):  # the same sentence can sit in several documents or chunks
+            picked.append((i, s))
+    return picked

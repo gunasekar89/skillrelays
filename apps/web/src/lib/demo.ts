@@ -127,9 +127,9 @@ export const org = {
     { label: "Not started", pct: 10, color: "#CBD5E1" },
   ],
   activity: [
-    { title: "Kubernetes Production Support KT", status: "Completed", people: 20, when: "2 hours ago" },
-    { title: "Azure DevOps Best Practices", status: "In progress", people: 15, when: "1 day ago" },
-    { title: "Incident Management Runbook", status: "Not started", people: 10, when: "2 days ago" },
+    { title: "Credit Card Support — New Joiner KT", status: "Completed", people: 20, when: "2 hours ago" },
+    { title: "Disputes and Chargebacks Basics", status: "In progress", people: 15, when: "1 day ago" },
+    { title: "Fraud Awareness for Agents", status: "Not started", people: 10, when: "2 days ago" },
   ],
 };
 
@@ -142,14 +142,15 @@ export type KtSession = {
   approved?: boolean;
 };
 
-export const sampleTranscript = `Welcome everyone. Today is the initial knowledge transfer for Kubernetes production support.
-First, the cluster architecture. We run two AKS clusters, one per region, behind Azure Front Door. Each cluster has a system node pool and two user node pools.
-The most common production issue is CrashLoopBackOff. When you see it, first run kubectl describe pod and check the events. Then check kubectl logs with the previous flag to see why the last container exited.
-Usually it's a missing secret, a bad config map value, or the liveness probe firing too early. If the exit code is 137, the container was OOMKilled, so check memory limits.
-For monitoring, we use Azure Monitor and Prometheus. Alerts go to the on-call channel in Teams.
-For incidents, the on-call engineer acknowledges within 15 minutes, opens an incident ticket, and posts updates every 30 minutes.
-Question from Priya: do we restart pods manually? Answer: only as a last resort, and always note it in the ticket.
-Open question: who owns certificate renewal for the ingress controller? We need to confirm that with the platform team.`;
+export const sampleTranscript = `Welcome everyone. Today is your first knowledge transfer session for credit card customer support.
+First, customer verification. Before you share any account details, verify the customer with the last 4 digits of the card, the date of birth and the OTP sent to the registered mobile number.
+Never ask for the full card number, the CVV or the PIN. If verification fails 3 times, ask the customer to visit the branch with a photo ID.
+The most common call is a lost card. When a card is lost or stolen, first block the card immediately, then confirm the replacement. The replacement card arrives in 5 to 7 working days, and the first replacement in a year is free.
+For a transaction the customer doesn't recognise, take the date, amount and merchant name, then raise a dispute in the CRM. Temporary credit is given within 10 working days.
+The late payment fee is 500 rupees for outstanding amounts up to 10,000 rupees. You can waive it once in 12 months if the customer has paid on time for the last 6 months.
+If a customer is angry, stay calm, listen, and apologise. Then explain what you will do and by when.
+Question from Ravi: can we tell a customer's husband the card balance? Answer: no, only the verified card holder, even for family members.
+Open question: can freshers approve a second late fee waiver? We need to confirm that with the team leader.`;
 
 export type GeneratedContent = {
   summary: string;
@@ -168,16 +169,16 @@ export function generateContent(transcript: string): GeneratedContent {
   const pick = (re: RegExp) => s.filter((x) => re.test(x));
 
   const topicMap: [RegExp, string][] = [
-    [/architect|cluster|node pool|region/i, "Cluster architecture overview"],
-    [/crashloop|exit code|oom|probe/i, "Troubleshooting CrashLoopBackOff"],
-    [/monitor|prometheus|alert/i, "Monitoring and alerting"],
-    [/incident|on-call|ticket/i, "Incident response process"],
-    [/deploy|rollout|release/i, "Deployments and releases"],
-    [/secret|config/i, "Configuration and secrets"],
+    [/verif|otp|date of birth/i, "Customer verification"],
+    [/lost|stolen|block/i, "Lost or stolen card"],
+    [/dispute|recognise|merchant/i, "Disputed transactions"],
+    [/late|fee|waive/i, "Late fees and waivers"],
+    [/angry|apologi|calm/i, "Handling an upset customer"],
+    [/cvv|pin|fraud|never/i, "Security and fraud prevention"],
   ];
   const topics = topicMap.filter(([re]) => re.test(transcript)).map(([, t]) => t);
 
-  const steps = pick(/first|then|check|run|kubectl|acknowledge|open|post/i).slice(0, 6);
+  const steps = pick(/first|then|before|block|verify|raise|take the|explain|ask the/i).slice(0, 6);
   const qa = pick(/question/i);
   const open = pick(/open question|need to confirm|not sure|tbd/i);
 
@@ -189,12 +190,14 @@ export function generateContent(transcript: string): GeneratedContent {
     });
 
   const quiz = [] as GeneratedContent["quiz"];
-  if (/crashloop/i.test(transcript))
-    quiz.push({ q: "What is the first command to run when a pod is in CrashLoopBackOff?", options: ["kubectl delete pod", "kubectl describe pod", "kubectl scale", "kubectl apply"], answer: 1 });
-  if (/137|oom/i.test(transcript))
-    quiz.push({ q: "Exit code 137 usually means the container was…", options: ["Missing a secret", "OOMKilled", "Failing a readiness probe", "Evicted for disk"], answer: 1 });
-  if (/15 minutes/i.test(transcript))
-    quiz.push({ q: "How quickly must on-call acknowledge an incident?", options: ["5 minutes", "15 minutes", "30 minutes", "1 hour"], answer: 1 });
+  if (/block the card/i.test(transcript))
+    quiz.push({ q: "A customer has lost their card. What do you do first?", options: ["Order a replacement", "Block the card", "Transfer to a team leader", "Ask for the CVV"], answer: 1 });
+  if (/otp/i.test(transcript))
+    quiz.push({ q: "Which of these must you NEVER ask the customer for?", options: ["Date of birth", "Last 4 digits of the card", "The CVV", "OTP for verification"], answer: 2 });
+  if (/5 to 7 working days/i.test(transcript))
+    quiz.push({ q: "How long does a replacement card take to arrive?", options: ["1 to 2 days", "5 to 7 working days", "2 weeks", "30 days"], answer: 1 });
+  if (/only the verified card holder/i.test(transcript))
+    quiz.push({ q: "A customer's husband asks for the card balance. What do you say?", options: ["Share it if he knows the card number", "Share it after he gives her date of birth", "Politely decline: only the verified card holder", "Share only the due date"], answer: 2 });
   if (!quiz.length && s.length)
     quiz.push({ q: "Which statement was covered in this session?", options: [s[0], "None of the above", "It was not discussed", "Unsure"], answer: 0 });
 

@@ -22,7 +22,7 @@ export function docFromSession(s: KtSession): string {
   return [
     `Summary\n${c.summary}`,
     `Topics covered\n${c.topics.map((t) => `- ${t}`).join("\n")}`,
-    c.runbook.length ? `Runbook\n${c.runbook.map((r, i) => `${i + 1}. ${r.step}`).join("\n")}` : "",
+    c.runbook.length ? `Process steps\n${c.runbook.map((r, i) => `${i + 1}. ${r.step}`).join("\n")}` : "",
     c.faq.length ? `FAQ\n${c.faq.map((f) => `Q: ${f.q}\nA: ${f.a}`).join("\n")}` : "",
     c.openQuestions.length ? `Open questions\n${c.openQuestions.map((q) => `- ${q}`).join("\n")}` : "",
     `Full transcript\n${s.transcript}`,
@@ -31,10 +31,13 @@ export function docFromSession(s: KtSession): string {
     .join("\n\n");
 }
 
+// Same id for the same session title, so republishing (or publishing the sample) updates rather than duplicates.
+const sessionDocId = (title: string) => `kt-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
 const seed = (): KnowledgeDoc[] => [
   {
-    id: "sample-kt",
-    title: "Kubernetes Production Support — Initial KT",
+    id: sessionDocId("Credit Card Support — New Joiner KT"),
+    title: "Credit Card Support — New Joiner KT",
     text: docFromSession({ title: "", trainer: "", transcript: sampleTranscript, durationSec: 0, source: "sample" }),
     version: 1,
     updatedAt: new Date().toISOString(),
@@ -72,8 +75,7 @@ export function upsertDoc(docs: KnowledgeDoc[], doc: Omit<KnowledgeDoc, "version
 
 /** Publish an approved KT session into the knowledge base. */
 export function publishSession(s: KtSession) {
-  const id = `kt-${s.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-  saveDocs(upsertDoc(loadDocs(), { id, title: s.title, text: docFromSession(s), source: "kt" }));
+  saveDocs(upsertDoc(loadDocs(), { id: sessionDocId(s.title), title: s.title, text: docFromSession(s), source: "kt" }));
 }
 
 export async function apiHealth(): Promise<{ provider: string; model: string | null } | null> {

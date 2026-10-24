@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from . import llm
-from .retrieval import Hit, best_sentences, chunk_document, search
+from .retrieval import Chunk, Hit, best_sentences, chunk_document, coverage, idf_table, search
 
 log = logging.getLogger("skillrelays")
 
@@ -75,14 +75,24 @@ def health() -> dict:
     return {"ok": True, "provider": p.name if p else "Simulated", "model": p.model if p else None}
 
 
-def _retrieve(req: AskRequest) -> list[Hit]:
-    chunks = [c for d in req.documents for c in chunk_document(d.id, d.title, d.text)]
+# Below this share of the question's key terms, treat the documents as not covering it.
+MIN_COVERAGE = 0.3
+
+
+def _chunks(req: AskRequest) -> list[Chunk]:
+    return [c for d in req.documents for c in chunk_document(d.id, d.title, d.text)]
+
+
+def _retrieve(req: AskRequest, chunks: list[Chunk]) -> tuple[list[Hit], str]:
+    """Return the hits and the query that produced them."""
     # Fold the previous user turn in so follow-ups like "and what if that fails?" still retrieve.
     prior = next((t.content for t in reversed(req.history) if t.role == "user"), "")
-    hits = search(chunks, req.question, k=4)
+    query = req.question
+    hits = search(chunks, query, k=4)
     if prior and (not hits or hits[0].score < 2.0):
-        hits = search(chunks, f"{prior} {req.question}", k=4)
-    return hits
+        query = f"{prior} {req.question}"
+        hits = search(chunks, query, k=4)
+    return hits, query
 
 
 def _citations(hits: list[Hit], req: AskRequest) -> list[Citation]:
@@ -93,25 +103,37 @@ def _citations(hits: list[Hit], req: AskRequest) -> list[Citation]:
     ]
 
 
-def _simulated_answer(question: str, hits: list[Hit]) -> str:
-    lines = []
-    for i, h in enumerate(hits[:2]):
-        for s in best_sentences(h.chunk.text, question, limit=2):
-            lines.append(f"{s} [{i + 1}]")
-    if not lines:
-        return "I couldn't find that in the training documents. Ask the trainer to add it, and I'll be able to answer next time."
-    return "Here's what the training documents say: " + " ".join(lines)
+def _cited(answer: str, citations: list[Citation]) -> list[Citation]:
+    """Keep only the sources the answer actually refers to."""
+    used = {int(n) for n in re.findall(r"\[(\d+)\]", answer)}
+    return [c for c in citations if c.n in used] or citations[:1]
+
+
+NOT_FOUND = "I couldn't find that in the training documents. Ask the trainer to add it, and I'll be able to answer next time."
+
+
+def _simulated_answer(question: str, hits: list[Hit], chunks: list[Chunk]) -> str:
+    df, n = idf_table(chunks)
+    picked = best_sentences([h.chunk.text for h in hits[:3]], question, df, n, limit=2)
+    if not picked:
+        return NOT_FOUND
+    return "Here's what the training documents say: " + " ".join(f"{s} [{i + 1}]" for i, s in picked)
 
 
 @app.post("/api/ask", response_model=AskResponse)
 async def ask(req: AskRequest) -> AskResponse:
-    hits = _retrieve(req)
+    chunks = _chunks(req)
+    hits, query = _retrieve(req, chunks)
+    if hits:
+        df, n = idf_table(chunks)
+        if max(coverage(h.chunk, query, df, n) for h in hits) < MIN_COVERAGE:
+            hits = []
     citations = _citations(hits, req)
     provider = llm.configured_provider()
 
     if not hits:
         return AskResponse(
-            answer="I couldn't find anything about that in the training documents. Ask the trainer to add it, and I'll be able to answer next time.",
+            answer=NOT_FOUND,
             citations=[],
             grounded=False,
             provider=provider.name if provider else "Simulated",
@@ -119,7 +141,8 @@ async def ask(req: AskRequest) -> AskResponse:
         )
 
     if provider is None:
-        return AskResponse(answer=_simulated_answer(req.question, hits), citations=citations, grounded=True, provider="Simulated")
+        answer = _simulated_answer(query, hits, chunks)
+        return AskResponse(answer=answer, citations=_cited(answer, citations), grounded=True, provider="Simulated")
 
     sources = "\n\n".join(f"[{c.n}] {c.title} (v{c.version}):\n{h.chunk.text}" for c, h in zip(citations, hits))
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -129,16 +152,15 @@ async def ask(req: AskRequest) -> AskResponse:
         answer, usage = await llm.chat(provider, messages)
     except Exception as exc:  # network, auth, quota: fall back rather than break the demo
         log.warning("LLM call failed, using simulated answer: %s", exc)
+        answer = _simulated_answer(query, hits, chunks)
         return AskResponse(
-            answer=_simulated_answer(req.question, hits),
-            citations=citations,
+            answer=answer,
+            citations=_cited(answer, citations),
             grounded=True,
             provider=f"Simulated ({provider.name} unavailable)",
         )
 
-    used = {int(n) for n in re.findall(r"\[(\d+)\]", answer)}
-    cited = [c for c in citations if c.n in used] or citations[:1]
-    return AskResponse(answer=answer, citations=cited, grounded=True, provider=provider.name, model=provider.model, usage=usage)
+    return AskResponse(answer=answer, citations=_cited(answer, citations), grounded=True, provider=provider.name, model=provider.model, usage=usage)
 
 
 @app.post("/api/extract")

@@ -23,11 +23,11 @@ import { brand } from "../lib/brand";
 const flow = [
   { icon: <Mic />, title: "Record KT session", text: "Trainer records with visible consent, or uploads audio." },
   { icon: <Brain />, title: "AI processes", text: "Speech becomes a transcript, topics and Q&A." },
-  { icon: <FileText />, title: "Training material", text: "Notes, runbooks, FAQs and quizzes, linked to the source." },
+  { icon: <FileText />, title: "Training material", text: "Notes, process steps, FAQs and quizzes, linked to the source." },
   { icon: <Users />, title: "Employees learn", text: "Quizzes and a voice coach measure readiness." },
 ];
 
-const generated = ["Session summary", "Training document", "Runbook", "FAQ", "Assessment quiz", "Key takeaways"];
+const generated = ["Session summary", "Training document", "Process steps", "FAQ", "Assessment quiz", "Key takeaways"];
 
 export default function Home() {
   return (
@@ -139,7 +139,7 @@ export default function Home() {
           {/* Product preview */}
           <div className="card overflow-hidden">
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
-              <div className="text-sm font-semibold">Kubernetes Production Support · Initial KT</div>
+              <div className="text-sm font-semibold">Credit Card Support · New Joiner KT</div>
               <span className="chip bg-red-50 text-red-600">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" /> Recording 24:15
               </span>
@@ -156,10 +156,10 @@ export default function Home() {
                 </div>
                 <div className="mt-6 rounded-lg bg-white/10 p-3 text-xs leading-relaxed text-slate-200">
                   <span className="font-semibold text-teal">Live transcript · </span>
-                  “When you see CrashLoopBackOff, first run kubectl describe pod and check the events…”
+                  “For a lost card, first block the card immediately, then confirm the replacement…”
                 </div>
                 <div className="mt-3 flex items-start gap-2 rounded-lg bg-amber-400/15 p-3 text-xs text-amber-100">
-                  <Lightbulb className="mt-0.5 h-4 w-4 shrink-0" /> Suggested question: “What memory limits do we set for the API pods?”
+                  <Lightbulb className="mt-0.5 h-4 w-4 shrink-0" /> Suggested question: “What if the customer can’t receive the OTP?”
                 </div>
               </div>
               <div className="p-5">
@@ -189,7 +189,7 @@ export default function Home() {
             {[
               { icon: <Mic />, title: "Voice mock interviews", text: "An AI interviewer asks questions out loud, listens to your answer and follows up like a real person." },
               { icon: <Target />, title: "Transparent scoring", text: "Technical, communication and completeness scores from a rubric you can read. Never a hiring decision." },
-              { icon: <Wand2 />, title: "KT to training, automatically", text: "Summaries, runbooks, FAQs and quizzes drafted from the session, each traceable to the transcript." },
+              { icon: <Wand2 />, title: "KT to training, automatically", text: "Summaries, process steps, FAQs and quizzes drafted from the session, each traceable to the transcript." },
               { icon: <ClipboardCheck />, title: "Trainer approval", text: "Nothing is published until a trainer reviews and approves it." },
               { icon: <BarChart3 />, title: "Readiness analytics", text: "See completion, skill readiness and knowledge gaps across teams." },
               { icon: <ShieldCheck />, title: "Private by design", text: "Each organization's knowledge is isolated. Recording always needs visible consent." },

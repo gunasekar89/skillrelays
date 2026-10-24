@@ -10,19 +10,19 @@ const steps = ["Session details", "Record / upload", "AI processing", "Review co
 
 // Simulated live assistant: nudges the trainer to cover gaps while they talk.
 const suggestionRules: [RegExp, string][] = [
-  [/crashloop|crash loop/i, "What memory and CPU limits do we set for these pods?"],
-  [/oom|memory/i, "How do we decide when to raise a memory limit versus fix a leak?"],
-  [/monitor|prometheus|alert/i, "Which alerts page on-call, and which are just warnings?"],
-  [/incident|on-call|on call/i, "Who is the escalation contact if on-call can't resolve it?"],
-  [/deploy|release|rollout/i, "How do we roll back a bad release?"],
-  [/secret|config/i, "Where are secrets stored, and who can rotate them?"],
-  [/cluster|node/i, "How many nodes do we run, and how does autoscaling work?"],
+  [/verif|otp/i, "What if the customer can't receive the OTP?"],
+  [/lost|stolen|block/i, "What if the customer also sees transactions they didn't make?"],
+  [/dispute|recognise|merchant/i, "How long can a customer wait before raising a dispute?"],
+  [/late|fee|waive/i, "Who approves a waiver if the customer already had one this year?"],
+  [/angry|upset|complain/i, "When should a fresher transfer the call to a team leader?"],
+  [/limit|increase/i, "How soon can a customer ask for a credit limit increase?"],
+  [/reward|points/i, "How do customers redeem their reward points?"],
 ];
 
 export default function KtSession() {
   const nav = useNavigate();
-  const [title, setTitle] = useState("Kubernetes Production Support — Initial KT");
-  const [trainer, setTrainer] = useState("Arjun (SRE Lead)");
+  const [title, setTitle] = useState("Credit Card Support — New Joiner KT");
+  const [trainer, setTrainer] = useState("Meena (Team Leader, Cards)");
   const [tab, setTab] = useState<"record" | "upload">("record");
   const [consent, setConsent] = useState(false);
   const [processing, setProcessing] = useState(-1);
@@ -83,7 +83,7 @@ export default function KtSession() {
   const currentStep = processing >= 0 ? 2 : live || rec.status === "stopped" || uploadName ? 1 : 0;
 
   if (processing >= 0) {
-    const stages = ["Cleaning transcript", "Finding topics and Q&A", "Drafting runbook and FAQ", "Writing assessment quiz"];
+    const stages = ["Cleaning transcript", "Finding topics and Q&A", "Drafting process steps and FAQ", "Writing assessment quiz"];
     return (
       <div className="mx-auto max-w-lg py-16">
         <div className="card p-8 text-center">

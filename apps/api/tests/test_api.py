@@ -97,3 +97,14 @@ def test_extract_docx():
 def test_extract_rejects_unknown_type():
     r = client.post("/api/extract", files={"file": ("x.exe", b"MZ")})
     assert r.status_code == 415
+
+
+def test_section_heading_guides_the_answer():
+    guide = {
+        "id": "cards",
+        "title": "Fresher guide",
+        "text": "Your role\nYou help customers with lost cards, payments and disputes.\n\n"
+        "Lost or stolen card\nBlock the card immediately after verification.\nThe replacement arrives in 5 to 7 working days.",
+    }
+    body = client.post("/api/ask", json={"question": "What do I do when a card is lost or stolen?", "documents": [guide]}).json()
+    assert body["answer"].split("say: ")[1].startswith("Block the card immediately")

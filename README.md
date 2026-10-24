@@ -29,6 +29,10 @@ uvicorn app.main:app --port 8000
 
 The web app proxies `/api` to port 8000. API keys stay on the server and never reach the browser. Without the API, the assistant still works in a labeled offline mode. Tests: `pip install -r requirements-dev.txt && pytest`. Use Chrome or Edge for the full voice experience: the browser's speech recognition powers the live transcript, and its speech synthesis gives the interviewer a voice.
 
+## Demo theme
+
+The enterprise demo trains freshers on credit card customer support (BFSI). A sample KT session is built in, and `demo/enterprise/Credit-Card-Support-Fresher-Training.docx` is a mock document to upload to the AI assistant. All names, amounts and rules in the samples are made up.
+
 ## What works today
 
 - **Homepage** with Student and Enterprise entry points.

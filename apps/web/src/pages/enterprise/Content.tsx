@@ -9,7 +9,7 @@ import { formatClock } from "../../lib/voice";
 
 const tabs = [
   { key: "summary", label: "Summary", icon: <FileText className="h-4 w-4" /> },
-  { key: "runbook", label: "Runbook", icon: <Wrench className="h-4 w-4" /> },
+  { key: "runbook", label: "Process steps", icon: <Wrench className="h-4 w-4" /> },
   { key: "faq", label: "FAQ", icon: <HelpCircle className="h-4 w-4" /> },
   { key: "quiz", label: "Assessment", icon: <ListChecks className="h-4 w-4" /> },
   { key: "transcript", label: "Transcript", icon: <ScrollText className="h-4 w-4" /> },
@@ -106,7 +106,7 @@ export default function Content() {
 
             {tab === "runbook" && (
               <div>
-                <h2 className="font-semibold">Runbook draft</h2>
+                <h2 className="font-semibold">Process steps draft</h2>
                 {content.runbook.length ? (
                   <ol className="mt-3 space-y-3">
                     {content.runbook.map((r, i) => (
@@ -174,7 +174,7 @@ export default function Content() {
         <div className="space-y-5">
           <div className="card p-5">
             <div className="label">Review</div>
-            <p className="mt-2 text-sm text-slate-600">Check each tab. Every runbook step links back to the transcript it came from. Nothing reaches employees until you approve it. Approving also adds it to the AI assistant's documents.</p>
+            <p className="mt-2 text-sm text-slate-600">Check each tab. Every process step links back to the transcript it came from. Nothing reaches employees until you approve it. Approving also adds it to the AI assistant's documents.</p>
             {session.approved ? (
               <div className="mt-4 grid gap-2">
                 <Link to="/enterprise/assistant" className="btn-primary w-full">
@@ -198,7 +198,7 @@ export default function Content() {
                 <span className="font-semibold">{content.topics.length}</span>
               </li>
               <li className="flex justify-between">
-                <span>Runbook steps</span>
+                <span>Process steps</span>
                 <span className="font-semibold">{content.runbook.length}</span>
               </li>
               <li className="flex justify-between">
