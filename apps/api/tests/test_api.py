@@ -224,3 +224,32 @@ def test_end_of_training():
     history = [{"role": "assistant", "content": "Section 3 of 3: Ticketing ..."}]
     body = client.post("/api/ask", json={"question": "next", "documents": [GUIDE], "history": history}).json()
     assert "end of the Fresher Guide" in body["answer"]
+
+
+LESSON_2 = {"role": "assistant", "content": "Section 2 of 3: Our credit card products\n\nThe Spark Card costs ₹499 a year [1].\n\nCheck question: What is the Spark Card's annual fee? Say \"next\" to continue."}
+
+
+def test_answer_to_check_question_is_graded(monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+    seen = {}
+
+    async def fake_chat(provider, messages, timeout=30.0):
+        seen["prompt"] = messages[-1]["content"]
+        return "Correct! The Spark Card's annual fee is ₹499 [1]. Say \"next\" to continue.", {}
+
+    monkeypatch.setattr(llm, "chat", fake_chat)
+    body = client.post("/api/ask", json={"question": "499 rupees", "documents": [GUIDE], "history": [LESSON_2]}).json()
+    assert "Correct!" in seen["prompt"] and "₹499" in seen["prompt"] and "Trainee's answer: 499 rupees" in seen["prompt"]
+    assert body["answer"].startswith("Correct!") and body["citations"][0]["doc_id"] == "guide"
+
+
+def test_next_after_grading_moves_on():
+    history = [LESSON_2, {"role": "user", "content": "499"}, {"role": "assistant", "content": "Correct! ... Say \"next\" to continue."}]
+    body = client.post("/api/ask", json={"question": "next", "documents": [GUIDE], "history": history}).json()
+    assert body["answer"].startswith("Section 3 of 3: Ticketing")
+
+
+def test_question_after_lesson_is_not_graded():
+    body = client.post("/api/ask", json={"question": "How do I create a ticket?", "documents": [GUIDE], "history": [LESSON_2]}).json()
+    assert not body["answer"].startswith("Thanks for your answer")

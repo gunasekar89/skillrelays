@@ -186,9 +186,7 @@ def _training_step(req: AskRequest) -> tuple[Document, int, list[tuple[str, str]
     if not guides:
         return None
     doc, sections = max(guides, key=lambda g: len(g[1]))
-    last_assistant = next((t.content for t in reversed(req.history) if t.role == "assistant"), "")
-    taught = re.search(r"section\s+(\d+)", last_assistant, re.I)
-    current = int(taught.group(1)) - 1 if taught else -1
+    current = _current_section(req)
     asked = re.search(r"section\s+(\d+)", q)
     if asked:
         index = int(asked.group(1)) - 1
@@ -203,12 +201,42 @@ def _training_step(req: AskRequest) -> tuple[Document, int, list[tuple[str, str]
     return doc, max(0, index), sections
 
 
+LESSON_LABEL = re.compile(r"^\W*section\s+(\d+)\s+of\s+\d+", re.I)
+QUESTION_START = re.compile(r"^\W*(how|what|when|where|why|who|which|can|could|should|do|does|is|are|tell|explain|show)\b", re.I)
+
+
+def _current_section(req: AskRequest) -> int:
+    """The section most recently taught (0-based), or -1. Grading replies don't start with the label, so they don't move it."""
+    for t in reversed(req.history):
+        if t.role == "assistant" and (m := LESSON_LABEL.match(t.content)):
+            return int(m.group(1)) - 1
+    return -1
+
+
+def _answer_to_check(req: AskRequest) -> tuple[Document, int, list[tuple[str, str]]] | None:
+    """The trainee's reply to the check question that ended the last lesson, if this message is one."""
+    last = next((t.content for t in reversed(req.history) if t.role == "assistant"), "")
+    m = LESSON_LABEL.match(last)
+    q = req.question.strip()
+    if not m or "?" not in last or q.endswith("?") or QUESTION_START.match(q) or len(q.split()) > 30:
+        return None
+    guides = [g for g in ((d, _sections(d.text)) for d in req.documents) if g[1]]
+    if not guides:
+        return None
+    doc, sections = max(guides, key=lambda g: len(g[1]))
+    index = int(m.group(1)) - 1
+    return (doc, index, sections) if index < len(sections) else None
+
+
 @app.post("/api/ask", response_model=AskResponse)
 async def ask(req: AskRequest) -> AskResponse:
     provider = llm.configured_provider()
     step = _training_step(req)
     if step:
         return await _teach(req, provider, *step)
+    check = _answer_to_check(req)
+    if check:
+        return await _grade(req, provider, *check)
 
     chunks = _chunks(req)
     hits, query = _retrieve(req, chunks)
@@ -277,6 +305,32 @@ async def _teach(req: AskRequest, provider: llm.Provider | None, doc: Document, 
         lines = [x for x in body.splitlines() if x.strip()][:4]
         answer = f"{label}\n\n" + "\n".join(f"- {x}" for x in lines) + " [1]\n\nSay \"next\" to continue."
         return AskResponse(answer=answer, citations=[citation], grounded=True, provider=f"Simulated ({provider.name} unavailable)")
+    return AskResponse(answer=answer, citations=[citation], grounded=True, provider=provider.name, model=provider.model, usage=usage)
+
+
+async def _grade(req: AskRequest, provider: llm.Provider | None, doc: Document, index: int, sections: list[tuple[str, str]]) -> AskResponse:
+    title, body = sections[index]
+    citation = Citation(n=1, doc_id=doc.id, title=doc.title, version=doc.version, snippet=body[:400])
+    more = index + 1 < len(sections)
+    ending = "Say \"next\" to continue." if more else "That was the last section. Well done!"
+    first = next((x for x in body.splitlines() if x.strip()), "")
+    fallback = f"Thanks for your answer. The key point from this section is: {first} [1]\n\n{ending}"
+    if provider is None:
+        return AskResponse(answer=fallback, citations=[citation], grounded=True, provider="Simulated")
+
+    instruction = (
+        "The trainee is answering the check question you just asked. Grade it against the section text only. "
+        "Start with \"Correct!\" if it is right, \"Partly right.\" if it is incomplete, or \"Not quite.\" if it is wrong. "
+        "Then give the right answer in one or two simple sentences with [1], using only facts from the section text. "
+        f"End with exactly: {ending}"
+    )
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}, *_history(req, turns=2)]
+    messages.append({"role": "user", "content": f"{instruction}\n\nSection text [1] ({doc.title}, v{doc.version}):\n{body[:3000]}\n\nTrainee's answer: {req.question}"})
+    try:
+        answer, usage = await llm.chat(provider, messages)
+    except Exception as exc:
+        log.warning("LLM call failed while grading, using section text: %s", exc)
+        return AskResponse(answer=fallback, citations=[citation], grounded=True, provider=f"Simulated ({provider.name} unavailable)")
     return AskResponse(answer=answer, citations=[citation], grounded=True, provider=provider.name, model=provider.model, usage=usage)
 
 
