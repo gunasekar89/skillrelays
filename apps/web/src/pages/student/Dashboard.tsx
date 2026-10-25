@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
-import { Award, Mic, Target, TrendingUp } from "lucide-react";
+import { Award, CalendarClock, Mic, Target, TrendingUp } from "lucide-react";
 import { PageHeader, StatCard } from "../../components/ui";
 import { interviewTracks, scoreAnswers, type Answer } from "../../lib/demo";
 import { load } from "../../lib/storage";
+import { dueCount } from "../../lib/study";
 
 export default function StudentDashboard() {
   const saved = load<{ track: keyof typeof interviewTracks; answers: Answer[] } | null>("sr.interview", null);
+  const due = dueCount();
   const last = saved ? scoreAnswers(saved.answers, interviewTracks[saved.track].questions).overall : null;
 
   return (
@@ -28,6 +30,21 @@ export default function StudentDashboard() {
         </div>
         <Link to="/student/interview" className="btn-primary">
           Continue practicing
+        </Link>
+      </div>
+
+      <div className="card mt-4 flex flex-wrap items-center justify-between gap-4 p-6">
+        <div className="flex min-w-[240px] flex-1 items-center gap-3">
+          <div className="grid h-10 w-10 place-items-center rounded-full bg-amber-50 text-amber-600">
+            <CalendarClock className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="font-semibold">{due ? `${due} revision item${due > 1 ? "s" : ""} due today` : "Revision is up to date"}</div>
+            <div className="text-sm text-slate-500">Questions you missed come back after 1, 3 and 7 days, so they stick.</div>
+          </div>
+        </div>
+        <Link to={due ? "/student/notes?tool=review" : "/student/notes"} className={due ? "btn-primary" : "btn-ghost"}>
+          {due ? "Revise now" : "Study my notes"}
         </Link>
       </div>
 

@@ -429,3 +429,62 @@ def test_bullet_points_are_answers_not_headings():
     note = {"id": "n", "title": "My notes", "text": "Campus\n- Library open 8 am to 10 pm on weekdays\n- Placement cell helps students get jobs"}
     body = client.post("/api/ask", json={"question": "When is the library open?", "documents": [note]}).json()
     assert "8 am to 10 pm" in body["answer"] and "- Library" not in body["answer"]
+
+
+def test_study_question_comes_from_the_notes():
+    q = client.post("/api/study/question", json={"text": NOTES}).json()
+    assert q["provider"] == "Simulated" and len(q["question"]) > 10
+
+
+def test_coach_gives_hints_before_the_answer():
+    base = {"text": NOTES, "question": "How long does the MBA program take?"}
+    first = client.post("/api/study/coach", json={**base, "attempt": "", "step": 0}).json()
+    assert first["verdict"] == "none" and not first["answer"]
+    wrong = {**base, "attempt": "three years"}
+    hints = [client.post("/api/study/coach", json={**wrong, "step": s}).json() for s in (1, 2, 3)]
+    assert all(h["verdict"] == "not_yet" and h["hint"] and not h["answer"] for h in hints)
+    assert "____" in hints[2]["hint"] or "___" in hints[2]["hint"]
+    last = client.post("/api/study/coach", json={**wrong, "step": 4}).json()
+    assert "two years" in last["answer"]
+
+
+def test_coach_accepts_a_right_attempt_and_rejects_a_wrong_number():
+    base = {"text": NOTES, "question": "How much is the B.Tech fee?", "step": 0}
+    right = client.post("/api/study/coach", json={**base, "attempt": "2.1 lakh per year"}).json()
+    assert right["verdict"] == "correct" and "2.1 lakh" in right["answer"]
+    wrong = client.post("/api/study/coach", json={**base, "attempt": "3 lakh per year"}).json()
+    assert wrong["verdict"] == "not_yet" and not wrong["answer"]
+
+
+def test_coach_never_leaks_the_answer_early_from_the_model(monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+
+    async def fake_chat(provider, messages, **kw):
+        return '{"verdict": "partly", "feedback": "Close!", "hint": "Think about seats.", "answer": "Two years"}', {}
+
+    monkeypatch.setattr(llm, "chat", fake_chat)
+    body = client.post("/api/study/coach", json={"text": NOTES, "question": "MBA length?", "attempt": "one year", "step": 1}).json()
+    assert body["provider"] == "OpenAI" and body["hint"] == "Think about seats." and body["answer"] == ""
+
+
+def test_explain_it_back_finds_covered_missed_and_wrong_numbers():
+    said = "The library is open from 8 am to 10 pm on weekdays. The MBA takes two years and has 150 seats."
+    body = client.post("/api/study/explain", json={"text": NOTES, "explanation": said}).json()
+    assert body["provider"] == "Simulated"
+    assert any("library" in c.lower() for c in body["covered"])
+    assert any("placement" in m.lower() for m in body["missed"])
+    assert any("150" in m for m in body["mistakes"])
+    assert 0 < body["score"] < 100 and body["follow_up"]
+
+
+def test_explain_model_failure_falls_back(monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+
+    async def fake_chat(provider, messages, **kw):
+        raise RuntimeError("quota")
+
+    monkeypatch.setattr(llm, "chat", fake_chat)
+    body = client.post("/api/study/explain", json={"text": NOTES, "explanation": "Fees and library hours"}).json()
+    assert body["provider"] == "Simulated (OpenAI unavailable)"
