@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { BookOpenCheck, Brain, Check, CircleHelp, Lightbulb, Loader2, Mic, MicOff, RotateCcw, Sparkles, Volume2, X } from "lucide-react";
+import { BookOpenCheck, Brain, Check, CircleHelp, Lightbulb, Loader2, Mic, MicOff, RotateCcw, Sparkles, Timer, Volume2, X } from "lucide-react";
 import { ScoreRing } from "./ui";
-import type { Note } from "../lib/notes";
+import { noteAi, type Note, type QuizQuestion } from "../lib/notes";
 import {
   INTERVALS,
   LAST_STEP,
@@ -21,6 +21,7 @@ import {
   type ReviewItem,
 } from "../lib/study";
 import { speak, speechRecognitionSupported, useSpeechToText } from "../lib/voice";
+import { logActivity } from "../lib/progress";
 
 function Provider({ r }: { r: { provider: string; model?: string | null } }) {
   return (
@@ -130,6 +131,7 @@ export function StudyCoach({ note, initialQuestion = "" }: { note: Note; initial
       setResult(r);
       if (r.hint) setHints((h) => [...h.slice(0, Math.max(0, nextStep - 1)), r.hint]);
       // Needed the answer shown: it goes on the revision list, to come back tomorrow.
+      if (r.answer) logActivity(note.id, "coach", r.verdict === "correct" ? 1 - 0.2 * r.step : 0.1);
       if (r.answer && r.verdict !== "correct" && !saved) {
         addMiss(note, question, r.answer);
         setSaved(true);
@@ -244,7 +246,9 @@ export function ExplainBack({ note, onCoach }: { note: Note; onCoach: (question:
     setBusy(true);
     setError("");
     try {
-      setResult(await explainBack(note, text));
+      const r = await explainBack(note, text);
+      setResult(r);
+      logActivity(note.id, "explain", r.score / 100);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -372,6 +376,7 @@ export function Revision() {
   const answer = (remembered: boolean) => {
     if (!card) return;
     setSeen((s) => new Set(s).add(card.id));
+    logActivity(card.noteId, "review", remembered ? 1 : 0);
     if (remembered) {
       setItems((xs) => markReview(xs, card.id, true));
       next();
@@ -453,6 +458,141 @@ export function Revision() {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+// ---------- Exam mode: timed, no hints, results only at the end ----------
+
+const EXAM_SECONDS_PER_QUESTION = 60;
+
+export function ExamMode({ note }: { note: Note }) {
+  const [questions, setQuestions] = useState<QuizQuestion[] | null>(null);
+  const [answers, setAnswers] = useState<(number | null)[]>([]);
+  const [i, setI] = useState(0);
+  const [left, setLeft] = useState(0);
+  const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const start = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const r = await noteAi("quiz", note);
+      if (!r.questions.length) throw new Error("I couldn't find enough facts in these notes for an exam. Add a few more lines.");
+      setQuestions(r.questions);
+      setAnswers(r.questions.map(() => null));
+      setI(0);
+      setDone(false);
+      setLeft(r.questions.length * EXAM_SECONDS_PER_QUESTION);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const finish = () => {
+    if (!questions || done) return;
+    setDone(true);
+    const right = questions.filter((q, k) => answers[k] === q.answer).length;
+    questions.forEach((q, k) => answers[k] !== q.answer && addMiss(note, q.question, q.options[q.answer]));
+    logActivity(note.id, "exam", right / questions.length);
+  };
+
+  useEffect(() => {
+    if (!questions || done) return;
+    if (left <= 0) return finish();
+    const t = window.setTimeout(() => setLeft((s) => s - 1), 1000);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [left, questions, done]);
+
+  if (!questions) {
+    return (
+      <div>
+        <p className="text-sm text-slate-600">
+          Test yourself like the real exam: a timed quiz with no hints and no AI help. You see your results only at the end, and anything you miss goes on your revision list.
+        </p>
+        {error && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 ring-1 ring-amber-200">{error}</p>}
+        <button onClick={start} disabled={busy} className="btn-primary mt-3 w-full">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Timer className="h-4 w-4" />} Start exam
+        </button>
+      </div>
+    );
+  }
+
+  if (done) {
+    const right = questions.filter((q, k) => answers[k] === q.answer).length;
+    const pct = Math.round((right / questions.length) * 100);
+    return (
+      <div>
+        <div className="flex items-center gap-4">
+          <ScoreRing value={pct} size={76} color={pct >= 80 ? "#14B8A6" : pct >= 50 ? "#F59E0B" : "#EF4444"} />
+          <p className="flex-1 text-sm">
+            {right} of {questions.length} right without any help.{" "}
+            {right < questions.length ? "The ones you missed are on your revision list for tomorrow." : "You're exam-ready on this note."}
+          </p>
+        </div>
+        <ul className="mt-3 max-h-80 space-y-2 overflow-y-auto">
+          {questions.map((q, k) => {
+            const ok = answers[k] === q.answer;
+            return (
+              <li key={k} className={`rounded-lg p-2.5 text-sm ring-1 ${ok ? "bg-teal-50 ring-teal/30" : "bg-red-50 ring-red-200"}`}>
+                <div className="font-medium">{q.question}</div>
+                {!ok && <div className="mt-1 text-xs">Your answer: {answers[k] === null ? "no answer" : q.options[answers[k] as number]}</div>}
+                <div className="mt-0.5 text-xs">Correct: {q.options[q.answer]}</div>
+              </li>
+            );
+          })}
+        </ul>
+        <button onClick={start} className="btn-primary mt-3 w-full">
+          <RotateCcw className="h-4 w-4" /> New exam
+        </button>
+      </div>
+    );
+  }
+
+  const q = questions[i];
+  const answered = answers.filter((a) => a !== null).length;
+  return (
+    <div>
+      <div className="flex items-center justify-between text-xs text-slate-500">
+        <span>
+          Question {i + 1} of {questions.length} · {answered} answered
+        </span>
+        <span className={`flex items-center gap-1 font-semibold ${left < 30 ? "text-red-600" : "text-navy"}`}>
+          <Timer className="h-3.5 w-3.5" /> {Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}
+        </span>
+      </div>
+      <p className="mt-2 font-medium">{q.question}</p>
+      <div className="mt-3 space-y-2">
+        {q.options.map((o, k) => (
+          <button
+            key={k}
+            onClick={() => setAnswers((a) => a.map((x, j) => (j === i ? k : x)))}
+            className={`w-full rounded-lg px-3 py-2 text-left text-sm ring-1 ${answers[i] === k ? "bg-brand-50 ring-brand" : "ring-slate-200 hover:bg-slate-50"}`}
+          >
+            <span className="mr-2 font-semibold text-slate-400">{String.fromCharCode(65 + k)}</span>
+            {o}
+          </button>
+        ))}
+      </div>
+      <div className="mt-3 flex gap-2">
+        <button onClick={() => setI(i - 1)} disabled={i === 0} className="btn-ghost">
+          Back
+        </button>
+        {i + 1 < questions.length ? (
+          <button onClick={() => setI(i + 1)} className="btn-primary flex-1">
+            Next
+          </button>
+        ) : (
+          <button onClick={finish} className="btn-teal flex-1">
+            <Check className="h-4 w-4" /> Hand in
+          </button>
+        )}
+      </div>
     </div>
   );
 }

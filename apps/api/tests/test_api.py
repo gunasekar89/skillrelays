@@ -488,3 +488,8 @@ def test_explain_model_failure_falls_back(monkeypatch):
     monkeypatch.setattr(llm, "chat", fake_chat)
     body = client.post("/api/study/explain", json={"text": NOTES, "explanation": "Fees and library hours"}).json()
     assert body["provider"] == "Simulated (OpenAI unavailable)"
+
+
+def test_notes_simplify_without_ai():
+    body = client.post("/api/notes/ai", json={"action": "simplify", "text": NOTES}).json()
+    assert body["text"].startswith("- ") and "2.1 lakh" in body["text"] and "GCU admissions" not in body["text"]
