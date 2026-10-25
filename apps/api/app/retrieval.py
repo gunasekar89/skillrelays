@@ -124,11 +124,12 @@ def best_sentences(texts: list[str], query: str, df: Counter, n: int, limit: int
         for line in text.split("\n"):
             line = line.strip()
             # A line without closing punctuation is a heading: it gives context to the sentences under it.
-            if line and not re.search(r"[.?!\"”]$", line):
+            # Bullet points ("- Library open 8 am to 10 pm") are content, with or without a full stop.
+            if line and not re.search(r"[.?!\"”]$", line) and not re.match(r"[-*•]\s", line):
                 heading = set(tokenize(line))
                 continue
             for s in re.split(r"(?<=[.?!])\s+(?=[A-Z0-9\"“])", line):
-                s = s.strip()
+                s = re.sub(r"^[-*•]\s+", "", s.strip())
                 if len(s) < 15:
                     continue
                 words = set(tokenize(s))

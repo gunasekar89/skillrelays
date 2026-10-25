@@ -350,3 +350,82 @@ def test_website_passages_from_one_page_make_one_citation(monkeypatch):
     body = client.post("/api/ask", json={"question": "Is there a dress code?", "documents": [GUIDE]}).json()
     assert [c["url"] for c in body["citations"]] == [url]
     assert body["answer"].startswith("This isn't in the training document, but the official website says: Yes")
+
+
+NOTES = (
+    "GCU admissions\n"
+    "- B.Tech fee is 2.1 lakh per year\n"
+    "- Placement cell: helps students find jobs with partner companies\n"
+    "- The library is open from 8 am to 10 pm on weekdays\n"
+    "teh MBA program takes two years adn has 120 seats\n"
+    "Scholarships are given to students who score above 90 percent in the entrance test"
+)
+
+
+def test_notes_summarize_without_ai():
+    body = client.post("/api/notes/ai", json={"action": "summarize", "title": "GCU", "text": NOTES}).json()
+    assert body["provider"] == "Simulated"
+    assert body["text"].count("\n- ") >= 3 and "teh" not in body["text"]
+
+
+def test_notes_tidy_fixes_spelling_and_keeps_facts():
+    body = client.post("/api/notes/ai", json={"action": "tidy", "text": NOTES}).json()
+    assert "The MBA program takes two years and has 120 seats." in body["text"]
+    assert "- B.Tech fee is 2.1 lakh per year" in body["text"]
+
+
+def test_notes_flashcards_and_quiz_without_ai():
+    cards = client.post("/api/notes/ai", json={"action": "flashcards", "text": NOTES}).json()["cards"]
+    assert any(c["back"].startswith("Helps students find jobs") for c in cards)
+    assert len(cards) >= 4
+    questions = client.post("/api/notes/ai", json={"action": "quiz", "text": NOTES}).json()["questions"]
+    assert questions and all(0 <= q["answer"] < len(q["options"]) for q in questions)
+    assert all(len(set(q["options"])) == len(q["options"]) for q in questions)
+
+
+def test_notes_flashcards_from_model_json(monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+
+    async def fake_chat(provider, messages, **kw):
+        return 'Here you go: {"cards": [{"front": "B.Tech fee?", "back": "2.1 lakh per year"}]}', {}
+
+    monkeypatch.setattr(llm, "chat", fake_chat)
+    body = client.post("/api/notes/ai", json={"action": "flashcards", "text": NOTES}).json()
+    assert body["provider"] == "OpenAI"
+    assert body["cards"] == [{"front": "B.Tech fee?", "back": "2.1 lakh per year"}]
+
+
+def test_notes_unreadable_model_reply_falls_back(monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+
+    async def fake_chat(provider, messages, **kw):
+        return "Sorry, no JSON today", {}
+
+    monkeypatch.setattr(llm, "chat", fake_chat)
+    body = client.post("/api/notes/ai", json={"action": "quiz", "text": NOTES}).json()
+    assert body["provider"].startswith("Simulated") and body["questions"]
+
+
+def test_handwriting_needs_ai_and_sends_image(monkeypatch):
+    image = "data:image/png;base64," + "A" * 40
+    assert client.post("/api/notes/handwriting", json={"image": image}).status_code == 503
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+    seen = {}
+
+    async def fake_chat(provider, messages, **kw):
+        seen["content"] = messages[-1]["content"]
+        return "Library opens at 8 am", {}
+
+    monkeypatch.setattr(llm, "chat", fake_chat)
+    body = client.post("/api/notes/handwriting", json={"image": image}).json()
+    assert body["text"] == "Library opens at 8 am"
+    assert seen["content"][1]["image_url"]["url"] == image
+
+
+def test_bullet_points_are_answers_not_headings():
+    note = {"id": "n", "title": "My notes", "text": "Campus\n- Library open 8 am to 10 pm on weekdays\n- Placement cell helps students get jobs"}
+    body = client.post("/api/ask", json={"question": "When is the library open?", "documents": [note]}).json()
+    assert "8 am to 10 pm" in body["answer"] and "- Library" not in body["answer"]

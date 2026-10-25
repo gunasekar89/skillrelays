@@ -20,3 +20,12 @@
 
 @keyframes bar { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
 .wave-bar { animation: bar 1s ease-in-out infinite; transform-origin: center; }
+
+/* Ruled notebook paper for the typed notes page. */
+.notebook-lines {
+  line-height: 32px;
+  background-image: linear-gradient(to bottom, transparent 31px, #dbeafe 31px);
+  background-size: 100% 32px;
+  background-attachment: local;
+  background-position: 0 12px;
+}

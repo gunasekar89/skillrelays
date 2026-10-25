@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from . import llm, web
+from . import llm, notes, web
 from .retrieval import Chunk, Hit, best_sentences, chunk_document, coverage, idf_table, search, tokenize, without_name
 
 log = logging.getLogger("skillrelays")
@@ -25,6 +25,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(notes.router)
 
 MAX_DOC_CHARS = 400_000
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
