@@ -37,7 +37,7 @@ export default function Learn() {
           <ScoreRing value={score} label="Your score" size={96} />
           <div>
             <div className="flex items-center gap-2 font-semibold">
-              <BadgeCheck className="h-5 w-5 text-teal" /> {score >= 70 ? "Ready for on-call shadowing" : "Review the runbook and try again"}
+              <BadgeCheck className="h-5 w-5 text-teal" /> {score >= 70 ? "Ready to take live calls with a buddy" : "Review the process steps and try again"}
             </div>
             <p className="mt-1 text-sm text-slate-500">
               {correct} of {quiz.length} correct. Your manager sees this on the readiness dashboard.

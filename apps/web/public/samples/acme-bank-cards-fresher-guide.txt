@@ -1,0 +1,341 @@
+Acme Bank Cards Contact Centre — Complete Fresher Training Guide
+
+Version 2.0 · Owner: Cards Contact Centre Training Team · For new Credit Card Support Executives. This is a mock document created for the SkillRelays demo. Acme Bank, its people, numbers and rules are made up.
+
+1. About the company: Acme Bank
+
+What our company does: Acme Bank is a private sector retail bank in India. It was founded in 1998 by Dola Ramesh and is headquartered in Chennai. The bank has over 650 branches, 4 million customers and 1.2 million active credit cards.
+
+Acme Bank offers savings accounts, home and personal loans, fixed deposits and credit cards.
+
+Our mission: make banking simple, safe and friendly for every customer.
+
+Our values are Customer First, Integrity, Simplicity and Ownership.
+
+Acme Bank is regulated by the Reserve Bank of India (RBI). We follow RBI rules on customer protection, data privacy, fair practices and complaint handling.
+
+The Cards Contact Centre is in Chennai and Coimbatore. It has about 400 executives and handles around 25,000 calls and chats every day.
+
+The contact centre is open 24 hours a day, 7 days a week. Lost card and fraud lines never close.
+
+2. Our credit card products
+
+Freshers should know the main card variants, because customers often ask about fees and benefits.
+
+Acme Spark Card: entry-level card. No joining fee. Annual fee ₹499, waived if the customer spends ₹50,000 in a year. 1 reward point per ₹100 spent.
+
+Acme Platinum Card: annual fee ₹1,499, waived on spends of ₹1.5 lakh in a year. 2 reward points per ₹100 spent and 4 free domestic airport lounge visits a year.
+
+Acme Signature Card: annual fee ₹4,999. 4 reward points per ₹100 spent, unlimited domestic lounge access and a 1% fuel surcharge waiver.
+
+Reward points: 1 point is worth ₹0.25. Points can be redeemed on the Acme Rewards portal or mobile app. Points expire after 3 years.
+
+EMI conversion: purchases above ₹2,500 can be converted to EMI for 3, 6, 9 or 12 months at 1.25% per month, with a processing fee of 1% of the amount.
+
+Customers can check balances, pay bills, block cards and redeem points in the Acme Bank mobile app without calling.
+
+3. Your role as a Credit Card Support Executive
+
+You are the first point of contact (Level 1) for card customers on phone and chat.
+
+Answer questions about bills, payments, fees, reward points, EMI and card features.
+
+Handle service requests: lost or stolen cards, card replacement, address change requests, PIN regeneration and limit increase requests.
+
+Raise tickets for issues you cannot solve on the call, and follow them up until closure.
+
+Protect the customer and the bank: verify every caller and never share information with anyone except the verified card holder.
+
+Be polite, patient and clear. Use the customer's name and avoid jargon.
+
+Your daily targets (KPIs)
+
+Answer calls within 20 seconds.
+
+Average handling time (AHT) of 6 minutes or less.
+
+First call resolution (FCR) of 75% or more.
+
+Quality score of 85% or more.
+
+Customer satisfaction (CSAT) of 4.2 out of 5 or more.
+
+Schedule adherence of 95% or more: be logged in and available when your roster says so.
+
+4. Working hours, attendance and leave policy
+
+Shifts are 9 hours, including a 30-minute meal break and two 15-minute short breaks.
+
+There are four shifts: Morning 6 AM to 3 PM, General 9 AM to 6 PM, Evening 2 PM to 11 PM, and Night 10 PM to 7 AM.
+
+Rosters are published every Thursday for the next week. Shift swaps need Team Leader approval at least 24 hours before the shift.
+
+Log in to the dialer 10 minutes before your shift starts. Being more than 10 minutes late three times in a month leads to a verbal warning.
+
+During the 6-month probation period, you get 1 day of paid leave per month. After probation, you get 18 days of earned leave, 12 days of sick leave and 10 public holidays a year.
+
+Apply for planned leave in the HR portal at least 7 days in advance. For sick leave, inform your Team Leader before your shift starts. Sick leave of more than 2 days needs a medical certificate.
+
+Night shift employees get a night allowance of ₹200 per shift and free transport.
+
+5. Code of conduct and basic company policies
+
+Mobile phones are not allowed on the contact centre floor. Keep them in your locker.
+
+Do not write down any customer information on paper. Use only the CRM.
+
+Clear desk policy: leave nothing on your desk at the end of the shift, and lock your screen (Windows + L) whenever you step away.
+
+Never share your system password or login with anyone, including your Team Leader.
+
+Dress code is business casual from Monday to Friday. Smart casual is allowed on weekends.
+
+Treat colleagues and customers with respect. Harassment of any kind is not tolerated and can be reported to the HR helpdesk or the anonymous ethics line.
+
+Gifts from customers are not allowed. Politely decline them.
+
+Social media: never post about customers, calls or internal processes.
+
+6. Data privacy and security rules
+
+Customer data is protected by RBI rules and the Digital Personal Data Protection Act. Breaking these rules can lead to termination.
+
+Never ask for the full card number, CVV, card PIN, internet banking password or a transaction OTP.
+
+Never read out the full card number or account details. You may confirm only the last 4 digits.
+
+Share account information only with the verified card holder, even if a family member calls.
+
+Report any suspected fraud, data leak or suspicious caller to your Team Leader and the Fraud Desk immediately.
+
+Calls and chats are recorded for quality and training purposes.
+
+7. Call flow: opening, verification and closing
+
+Opening the call
+
+Greet every customer with: "Thank you for calling Acme Bank Cards, my name is ___. How may I help you today?"
+
+Listen to the full concern before asking questions. Do not interrupt the customer.
+
+Customer verification (mandatory)
+
+Never share any account details before verifying the customer.
+
+Verify using all three: the last 4 digits of the card, the registered date of birth, and the OTP sent to the registered mobile number for verification.
+
+If the customer can't receive the OTP, ask two extra questions instead: the last payment amount and the registered email address.
+
+If verification fails 3 times, do not continue. Ask the customer to visit the nearest branch with a photo ID.
+
+Hold and transfer
+
+Ask permission before placing a customer on hold, and say how long it will take.
+
+Do not keep a customer on hold for more than 2 minutes without checking in.
+
+Before transferring a call, tell the customer who they are being transferred to and why.
+
+Closing the call
+
+Summarise what was done, share any ticket or reference number, and ask: "Is there anything else I can help you with today?"
+
+End with: "Thank you for banking with Acme Bank. Have a great day."
+
+Record the call notes and the reason code in the CRM before taking the next call.
+
+8. Common requests and how to handle them
+
+Lost or stolen card
+
+Block the card immediately after verification. This is always the first step.
+
+A replacement card is delivered in 5 to 7 working days. The first replacement in a year is free. After that, the fee is ₹200 plus GST.
+
+If the customer reports transactions they did not make, raise a Fraud ticket right away (see section 11).
+
+Disputed or unknown transactions
+
+Ask for the date, amount and merchant name of the transaction.
+
+Raise a Dispute ticket in the CRM. The customer gets the ticket number by SMS.
+
+A temporary credit is given within 10 working days while the dispute is investigated. The final decision takes up to 45 days.
+
+Customers must report a dispute within 30 days of the statement date.
+
+Bills, payments and late fees
+
+The payment due date is 20 days after the statement date.
+
+Paying the minimum amount due (5% of the outstanding amount) avoids the late fee, but interest of 3.5% per month is still charged on the unpaid balance.
+
+The late payment fee is ₹500 for outstanding amounts up to ₹10,000 and ₹750 above that.
+
+Credit limit increase
+
+Customers can request a credit limit increase after 6 months of card use.
+
+Raise a Service Request ticket. The decision depends on payment history and income. Never promise an approval or an amount.
+
+The customer gets the decision by SMS within 7 working days.
+
+Address change and PIN regeneration
+
+Address change needs a valid address proof uploaded through the mobile app or given at a branch. Executives cannot change the address on a call.
+
+Customers can set a new PIN instantly in the mobile app, or receive a new PIN by post in 7 working days.
+
+9. What you can and cannot approve (your limits)
+
+As a fresher (Level 1 executive), you have limited approval powers. Anything above these limits must go to the next level.
+
+You CAN waive a late payment fee once in 12 months if the customer has paid on time for the last 6 months.
+
+You CAN waive the card replacement fee once in 12 months.
+
+You CAN give a goodwill reward point credit of up to 500 points per customer per year.
+
+You CANNOT waive the annual fee, interest charges or a second late fee in the same year. Raise a Waiver Request ticket for your Team Leader to decide.
+
+You CANNOT approve any refund or waiver above ₹1,000. Senior Executives can approve up to ₹2,500, Team Leaders up to ₹10,000, and the Operations Manager above ₹10,000.
+
+You CANNOT change a customer's address, mobile number or email on a call.
+
+You CANNOT promise a credit limit increase, a dispute outcome or a timeline shorter than the official ones.
+
+10. Ticketing: how to create and follow up tickets
+
+Every request that is not solved during the call needs a ticket in the CRM, so nothing is forgotten and the customer can be updated.
+
+Ticket types: Service Request (for example limit increase or card upgrade), Complaint (the customer is unhappy with a service), Dispute (a transaction the customer questions), Fraud (unauthorised use of the card) and Waiver Request (fees above your limit).
+
+To create a ticket: open the customer profile in the CRM, click New Ticket, choose the ticket type and sub-type, write a clear summary of the issue in the customer's words, attach any details (date, amount, merchant), set the priority and click Submit.
+
+Always read the ticket number to the customer. They also receive it by SMS within 5 minutes.
+
+Priority P1 is for fraud or a blocked card that the customer needs urgently. P1 tickets are worked on within 4 hours.
+
+Priority P2 is for complaints and disputes. P2 tickets must be resolved within 3 working days.
+
+Priority P3 is for service requests. P3 tickets must be resolved within 7 working days.
+
+Follow-up: check your open tickets at the start of every shift in the My Tickets queue. Call the customer back if you promised to.
+
+If a ticket is close to breaching its time limit (SLA), add a note and inform your Team Leader before it breaches.
+
+Close a ticket only after the issue is solved and the customer has been informed. Use the right closure code.
+
+If the customer calls back about the same issue, update the existing ticket instead of creating a new one.
+
+11. Escalation process
+
+Escalate when an issue is above your limits, the customer asks for a supervisor, or a ticket is about to miss its time limit.
+
+Level 1, Customer Support Executive (you): handles the call and first-level requests, and creates tickets.
+
+Level 2, Senior Executive or Subject Matter Expert (SME): handles complex questions and waivers up to ₹2,500. Use a warm transfer, or the Ask SME chat on the floor.
+
+Level 3, Team Leader: handles angry customers, waivers up to ₹10,000 and tickets close to breaching their time limit.
+
+Level 4, Operations Manager: handles waivers above ₹10,000, media or social media complaints and any customer who mentions legal action.
+
+Level 5, Principal Nodal Officer (grievance redressal): if a complaint is not resolved within 30 days, the customer can write to the Principal Nodal Officer at nodal.officer@acmebank.example.
+
+RBI Banking Ombudsman: if the bank does not resolve the complaint within 30 days, or the customer is unhappy with the reply, the customer can complain to the RBI Ombudsman through the RBI CMS portal. Always share this information if the customer asks.
+
+Escalate immediately (do not wait) for fraud reports, threats of legal action, media or social media complaints, vulnerable customers (for example a customer in hospital or a bereaved family member) and any customer who asks for a supervisor twice.
+
+When you escalate, write a clear handover note in the ticket: what the customer wants, what you already checked and what you promised.
+
+12. Handling an upset customer
+
+Stay calm, listen and apologise for the inconvenience. Do not argue or take it personally.
+
+Repeat the concern back to show you understood it, then explain what you will do and by when.
+
+Use the customer's name and a polite tone. Avoid words like "policy says" without an explanation.
+
+If the customer uses abusive language, give two polite warnings. If it continues, tell the customer you will end the call, then end it and inform your Team Leader.
+
+If the customer asks for a supervisor, or the issue can't be solved on the call, transfer to your Team Leader with a handover note.
+
+13. Quality: how your calls are scored
+
+The Quality team checks 5 of your calls every week against these parameters.
+
+Greeting and closing script followed (10%).
+
+Customer verification done correctly (25%). Missing verification is a fatal error and the call scores zero.
+
+Correct and complete information given (25%).
+
+Ticket created correctly with clear notes (15%).
+
+Soft skills: empathy, tone, no interruptions (15%).
+
+Hold and transfer etiquette (10%).
+
+Other fatal errors: sharing information with an unverified caller, asking for the CVV, PIN or OTP, and being rude to the customer.
+
+14. Training plan, career growth and promotions
+
+Your first 30 days
+
+Week 1: classroom training on Acme Bank, products, policies and systems (CRM and dialer).
+
+Week 2: process training on call flow, verification, ticketing and escalation. Ends with a certification test; the pass mark is 80%.
+
+Week 3: buddy calls. Listen to live calls with an experienced buddy, then take calls while the buddy listens.
+
+Week 4: on-the-job training (OJT) on live calls with extra Team Leader support. Your targets are relaxed during this week.
+
+Probation lasts 6 months. You are confirmed if your quality score is 85% or more and you have no fatal errors in the last 2 months.
+
+Career path: how to get promoted to the next level
+
+Promotions are based on time in role, quality score, CSAT, attendance and an assessment. Talk to your Team Leader about your growth plan in your monthly one-to-one.
+
+Customer Support Executive (Level 1): your starting role.
+
+Senior Customer Support Executive: after 12 months, with quality of 90% or more, CSAT of 4.5 or more and no warnings.
+
+Subject Matter Expert (SME): after 18 months, by passing the SME product test and an interview. SMEs support the floor and handle Level 2 questions.
+
+Team Leader: after 30 months, by passing the leadership assessment and an interview. Team Leaders manage a team of about 15 executives.
+
+Other paths: Quality Analyst, Trainer, Workforce Management (WFM) Analyst or Fraud Analyst. Internal job postings are on the HR portal, and you can apply after 12 months in your current role.
+
+Monthly rewards: the Star Performer award (₹2,000 voucher) goes to the top executive of each team every month.
+
+15. Who to contact
+
+Your Team Leader: first contact for anything about your work, roster or leave.
+
+SME desk: Ask SME chat on the floor for product or process questions during a call.
+
+IT helpdesk: extension 4357 (H-E-L-P) for system, login or headset problems.
+
+HR helpdesk: hr.helpdesk@acmebank.example or extension 4700 for payroll, leave and policies.
+
+Fraud Desk: extension 3728, available 24 hours a day.
+
+Ethics line: 1800-000-1234 (anonymous) to report harassment or misconduct.
+
+16. Glossary
+
+AHT: average handling time, the average length of your calls including after-call work.
+
+FCR: first call resolution, the share of issues solved on the first call.
+
+CSAT: customer satisfaction score from the survey after the call.
+
+SLA: service level agreement, the time limit for resolving a ticket.
+
+CRM: customer relationship management system, where customer profiles and tickets live.
+
+OJT: on-the-job training on live calls.
+
+SME: subject matter expert.
+
+MAD: minimum amount due on the credit card bill.
