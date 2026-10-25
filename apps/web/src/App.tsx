@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { BarChart3, Bot, FileText, GraduationCap, LayoutDashboard, Mic } from "lucide-react";
+import { BarChart3, Bot, FileText, GraduationCap, LayoutDashboard, Mic, NotebookPen } from "lucide-react";
 import { AppShell } from "./components/AppShell";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -11,11 +11,13 @@ import KtSession from "./pages/enterprise/KtSession";
 import Content from "./pages/enterprise/Content";
 import Learn from "./pages/enterprise/Learn";
 import Assistant from "./pages/enterprise/Assistant";
+import Notes from "./pages/Notes";
 
 const studentNav = [
   { to: "/student", label: "Dashboard", icon: <LayoutDashboard />, end: true },
   { to: "/student/interview", label: "Mock Interview", icon: <Mic /> },
   { to: "/student/results", label: "Interview Results", icon: <BarChart3 /> },
+  { to: "/student/notes", label: "AI Notes", icon: <NotebookPen /> },
 ];
 
 const enterpriseNav = [
@@ -23,6 +25,7 @@ const enterpriseNav = [
   { to: "/enterprise/kt", label: "KT Sessions", icon: <Mic /> },
   { to: "/enterprise/content", label: "Training Content", icon: <FileText /> },
   { to: "/enterprise/assistant", label: "AI Assistant", icon: <Bot /> },
+  { to: "/enterprise/notes", label: "AI Notes", icon: <NotebookPen /> },
   { to: "/enterprise/learn", label: "Employee Quiz", icon: <GraduationCap /> },
 ];
 
@@ -35,12 +38,14 @@ export default function App() {
         <Route path="/student" element={<StudentDashboard />} />
         <Route path="/student/interview" element={<MockInterview />} />
         <Route path="/student/results" element={<Results />} />
+        <Route path="/student/notes" element={<Notes />} />
       </Route>
       <Route element={<AppShell nav={enterpriseNav} user={{ name: "Rajesh", role: "Org Admin" }} context="Acme Technologies" />}>
         <Route path="/enterprise" element={<OrgDashboard />} />
         <Route path="/enterprise/kt" element={<KtSession />} />
         <Route path="/enterprise/content" element={<Content />} />
         <Route path="/enterprise/assistant" element={<Assistant />} />
+        <Route path="/enterprise/notes" element={<Notes />} />
         <Route path="/enterprise/learn" element={<Learn />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

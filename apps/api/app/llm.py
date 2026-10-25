@@ -49,8 +49,8 @@ def configured_provider() -> Provider | None:
     return None
 
 
-async def chat(provider: Provider, messages: list[dict[str, str]], timeout: float = 30.0) -> tuple[str, dict]:
-    body: dict = {"messages": messages, "temperature": 0.2, "max_tokens": 500}
+async def chat(provider: Provider, messages: list[dict], timeout: float = 30.0, max_tokens: int = 500) -> tuple[str, dict]:
+    body: dict = {"messages": messages, "temperature": 0.2, "max_tokens": max_tokens}
     if provider.send_model:
         body["model"] = provider.model
     async with httpx.AsyncClient(timeout=timeout) as client:
