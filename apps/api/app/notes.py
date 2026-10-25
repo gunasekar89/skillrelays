@@ -17,6 +17,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from . import llm
+from .learner import Band, Language, band_rule, language_rule
 from .retrieval import tokenize
 
 log = logging.getLogger("skillrelays")
@@ -37,6 +38,8 @@ class NoteRequest(BaseModel):
     action: Literal["summarize", "tidy", "simplify", "flashcards", "quiz"]
     title: str = Field(default="", max_length=200)
     text: str = Field(min_length=1, max_length=MAX_NOTE_CHARS)
+    language: Language = "en"
+    band: Band = "college"
 
 
 class Card(BaseModel):
@@ -271,7 +274,8 @@ async def note_ai(req: NoteRequest) -> NoteResponse:
     if provider is None:
         return NoteResponse(action=req.action, provider="Simulated", **_simulated(req.action, req.text))
     messages = [
-        {"role": "system", "content": NOTES_PROMPT},
+        # Tidying keeps the learner's own language; everything else follows their chosen one.
+        {"role": "system", "content": NOTES_PROMPT + band_rule(req.band) + ("" if req.action == "tidy" else language_rule(req.language))},
         {"role": "user", "content": f"{INSTRUCTIONS[req.action]}\n\nNotes titled \"{req.title or 'Untitled'}\":\n{req.text[:12000]}"},
     ]
     try:

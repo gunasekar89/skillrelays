@@ -105,7 +105,7 @@ export function todaysPlan(notes = loadNotes(), log = loadActivity()): PlanTask[
     tasks.push({
       id: "coach",
       title: `${fresh ? "Start" : "Practise"} "${weakest.note.title}" with the Study coach`,
-      why: fresh ? "You haven't tested yourself on this note yet." : `Your weakest note (${Math.round((weakest.score ?? 0) * 100)}%).`,
+      why: fresh ? "You haven't tested yourself on this note yet." : `Current evidence suggests more practice here (${Math.round((weakest.score ?? 0) * 100)}% recently).`,
       minutes: 10,
       to: `/student/notes?note=${encodeURIComponent(weakest.note.id)}&tool=coach`,
       done: did("coach", weakest.note.id),
@@ -131,3 +131,54 @@ export function todaysPlan(notes = loadNotes(), log = loadActivity()): PlanTask[
   }
   return tasks;
 }
+
+/** Days with practice in the last 7: rewards a steady habit without punishing one missed day like a streak does. */
+export function practiceDays(log = loadActivity()) {
+  const since = Date.now() - 7 * DAY;
+  return new Set(log.filter((a) => new Date(a.at).getTime() >= since).map((a) => dayKey(a.at))).size;
+}
+
+/** Plain words for a mastery score: current evidence, never a label for the student. */
+export function masteryWord(score: number | null) {
+  if (score === null) return "Not practised yet";
+  if (score >= 0.8) return "Secure";
+  if (score >= 0.5) return "Getting there";
+  return "Needs more practice";
+}
+
+export type Badge = { id: string; title: string; detail: string; earned: boolean; progress: string };
+
+/** Badges for learning habits the research rewards (fixing mistakes, explaining, testing without help), not time spent. */
+export function badges(log = loadActivity()): Badge[] {
+  const count = (kind: ActivityKind, min = 0) => log.filter((a) => a.kind === kind && a.score >= min).length;
+  const fixed = count("review", 1);
+  const explained = count("explain", 0.5);
+  const coached = log.filter((a) => a.kind === "coach" && a.score >= 0.8).length;
+  const exams = count("exam", 0.8);
+  const days = new Set(log.map((a) => dayKey(a.at))).size;
+  return [
+    { id: "fixer", title: "Mistake fixer", detail: "Remember 5 questions you once got wrong", earned: fixed >= 5, progress: `${Math.min(fixed, 5)}/5` },
+    { id: "explainer", title: "Explainer", detail: "Explain 3 topics in your own words (50%+)", earned: explained >= 3, progress: `${Math.min(explained, 3)}/3` },
+    { id: "thinker", title: "Thinks first", detail: "Get 5 coach questions right with at most one hint", earned: coached >= 5, progress: `${Math.min(coached, 5)}/5` },
+    { id: "exam", title: "Exam ready", detail: "Score 80%+ in exam mode, with no help", earned: exams >= 1, progress: `${Math.min(exams, 1)}/1` },
+    { id: "steady", title: "Steady learner", detail: "Practise on 5 different days", earned: days >= 5, progress: `${Math.min(days, 5)}/5` },
+  ];
+}
+
+/** A weekly note for parents in plain words, as the report suggests: what was done, what is secure, what needs practice. */
+export function parentSummary(name: string, notes = loadNotes(), log = loadActivity()) {
+  const since = Date.now() - 7 * DAY;
+  const week = log.filter((a) => new Date(a.at).getTime() >= since);
+  const m = mastery(notes, log).filter((x) => x.score !== null);
+  const secure = m.filter((x) => (x.score ?? 0) >= 0.8).map((x) => x.note.title);
+  const practise = m.filter((x) => (x.score ?? 0) < 0.6).map((x) => x.note.title);
+  const lines = [
+    `This week ${name} practised on ${practiceDays(log)} of 7 days and finished ${week.length} study activit${week.length === 1 ? "y" : "ies"}.`,
+    secure.length ? `${name} is secure in ${list(secure)}.` : "",
+    practise.length ? `Current practice suggests a little more work on ${list(practise)} would help.` : "",
+    week.length ? "You can help by asking them to explain one topic to you in their own words." : `${name} hasn't studied with SkillRelays this week. A short 15-minute session a day helps most.`,
+  ];
+  return lines.filter(Boolean).join(" ");
+}
+
+const list = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);

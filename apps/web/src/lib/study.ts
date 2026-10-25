@@ -1,9 +1,10 @@
 // Study tools that make the learner think first: the hint-ladder coach, "explain it back", and a spaced
 // revision list. Revision lives in this browser's localStorage; the coach and explain-back run on the API.
 import type { Note } from "./notes";
+import { learnerParams } from "./profile";
 
 export type Verdict = "correct" | "partly" | "not_yet" | "none";
-export type CoachResult = { verdict: Verdict; feedback: string; hint: string; answer: string; step: number; provider: string; model?: string | null };
+export type CoachResult = { verdict: Verdict; feedback: string; hint: string; answer: string; step: number; safety?: boolean; provider: string; model?: string | null };
 export type ExplainResult = {
   score: number;
   feedback: string;
@@ -11,6 +12,7 @@ export type ExplainResult = {
   missed: string[];
   mistakes: string[];
   follow_up: string;
+  safety?: boolean;
   provider: string;
   model?: string | null;
 };
@@ -28,7 +30,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return r.json();
 }
 
-const notePart = (note: Note) => ({ title: note.title, text: note.text.slice(0, 30000) });
+const notePart = (note: Note) => ({ title: note.title, text: note.text.slice(0, 30000), ...learnerParams() });
 
 export const coachQuestion = (note: Note, skip: string[]) => post<{ question: string; provider: string }>("/api/study/question", { ...notePart(note), skip });
 

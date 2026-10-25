@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { BookOpenCheck, Brain, Check, CircleHelp, Lightbulb, Loader2, Mic, MicOff, RotateCcw, Sparkles, Timer, Volume2, X } from "lucide-react";
+import { BookOpenCheck, Brain, Camera, Check, CircleHelp, HeartHandshake, Lightbulb, Loader2, Mic, MicOff, RotateCcw, Sparkles, Timer, Volume2, X } from "lucide-react";
 import { ScoreRing } from "./ui";
-import { noteAi, type Note, type QuizQuestion } from "../lib/notes";
+import { noteAi, readHandwriting, type Note, type QuizQuestion } from "../lib/notes";
 import {
   INTERVALS,
   LAST_STEP,
@@ -80,14 +80,42 @@ const VERDICT_STYLE: Record<string, string> = {
 
 // ---------- Study Coach: try first, then one hint at a time ----------
 
-export function StudyCoach({ note, initialQuestion = "" }: { note: Note; initialQuestion?: string }) {
+/** Shrink a photo so it stays well under the API's image size limit. */
+function photoToDataUrl(file: File, max = 1600): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(img.src);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => reject(new Error("That file isn't a picture I can read."));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+export function SafetyNote({ text }: { text: string }) {
+  return (
+    <div className="flex gap-3 rounded-xl bg-rose-50 p-4 text-sm text-rose-900 ring-1 ring-rose-200">
+      <HeartHandshake className="mt-0.5 h-5 w-5 shrink-0" />
+      <p>{text}</p>
+    </div>
+  );
+}
+
+export function StudyCoach({ note, initialQuestion = "", canType = true }: { note: Note; initialQuestion?: string; canType?: boolean }) {
   const [question, setQuestion] = useState(initialQuestion);
   const [asked, setAsked] = useState<string[]>([]);
   const [attempt, setAttempt] = useState("");
   const [step, setStep] = useState(0);
   const [result, setResult] = useState<CoachResult | null>(null);
   const [hints, setHints] = useState<string[]>([]);
-  const [busy, setBusy] = useState<"question" | "check" | "hint" | null>(null);
+  const [busy, setBusy] = useState<"question" | "check" | "hint" | "photo" | null>(null);
+  const photo = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
 
@@ -114,6 +142,22 @@ export function StudyCoach({ note, initialQuestion = "" }: { note: Note; initial
       setError(e instanceof Error ? e.message : "Couldn't get a question.");
     } finally {
       setBusy(null);
+    }
+  };
+
+  const fromPhoto = async (file?: File) => {
+    if (!file) return;
+    setBusy("photo");
+    setError("");
+    try {
+      const { text } = await readHandwriting(await photoToDataUrl(file));
+      if (/^\(no writing found\)$/i.test(text.trim())) throw new Error("I couldn't read a question in that photo. Try again closer, in good light.");
+      reset(text.replace(/\s*\n\s*/g, " ").trim());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't read the photo.");
+    } finally {
+      setBusy(null);
+      if (photo.current) photo.current.value = "";
     }
   };
 
@@ -148,19 +192,35 @@ export function StudyCoach({ note, initialQuestion = "" }: { note: Note; initial
       <div className="flex items-start gap-2 rounded-xl bg-brand-50 p-3">
         <CircleHelp className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
         <div className="min-w-0 flex-1">
-          {busy === "question" ? (
+          {busy === "question" || busy === "photo" ? (
             <span className="flex items-center gap-2 text-sm text-slate-500">
-              <Loader2 className="h-4 w-4 animate-spin" /> Picking a question from your notes…
+              <Loader2 className="h-4 w-4 animate-spin" /> {busy === "photo" ? "Reading the question in your photo…" : "Picking a question from your notes…"}
             </span>
           ) : (
             <input
               value={question}
+              readOnly={!canType}
               onChange={(e) => reset(e.target.value)}
-              placeholder="Type a question, or get one from your notes"
+              placeholder={canType ? "Type a doubt, or get a question from your notes" : "Your question"}
               className="w-full bg-transparent text-sm font-medium text-navy placeholder:font-normal focus:outline-none"
             />
           )}
         </div>
+        {canType && (
+          <>
+            <button
+              type="button"
+              onClick={() => photo.current?.click()}
+              disabled={busy !== null}
+              className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-brand ring-1 ring-brand/30"
+              aria-label="Ask a doubt from a photo"
+              title="Photo of a textbook or worksheet question"
+            >
+              <Camera className="h-3.5 w-3.5" />
+            </button>
+            <input ref={photo} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => fromPhoto(e.target.files?.[0])} />
+          </>
+        )}
       </div>
 
       {/* Hint ladder progress */}
@@ -191,7 +251,12 @@ export function StudyCoach({ note, initialQuestion = "" }: { note: Note; initial
         </ul>
       )}
 
-      {result && (
+      {result?.safety && (
+        <div className="mt-3">
+          <SafetyNote text={result.feedback} />
+        </div>
+      )}
+      {result && !result.safety && (
         <div className={`mt-3 rounded-xl p-3 text-sm ring-1 ${VERDICT_STYLE[result.verdict]}`}>
           <p>{result.feedback}</p>
           {result.answer && (
@@ -248,13 +313,24 @@ export function ExplainBack({ note, onCoach }: { note: Note; onCoach: (question:
     try {
       const r = await explainBack(note, text);
       setResult(r);
-      logActivity(note.id, "explain", r.score / 100);
+      if (!r.safety) logActivity(note.id, "explain", r.score / 100);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setBusy(false);
     }
   };
+
+  if (result?.safety) {
+    return (
+      <div>
+        <SafetyNote text={result.feedback} />
+        <button onClick={() => (setResult(null), setText(""))} className="btn-ghost mt-3 w-full">
+          Back to studying
+        </button>
+      </div>
+    );
+  }
 
   if (result) {
     const color = result.score >= 80 ? "#14B8A6" : result.score >= 50 ? "#F59E0B" : "#EF4444";

@@ -1,11 +1,14 @@
 // A learner's own notebook: typed text plus an optional handwritten page, kept in this browser's
 // localStorage. The AI tools (summarize, tidy up, flashcards, quiz, handwriting) run on the API.
+import { learnerParams } from "./profile";
 
 export type Note = {
   id: string;
   title: string;
   text: string;
   ink?: string; // PNG data URL of the handwritten page
+  subject?: string;
+  chapter?: string;
   updatedAt: string;
 };
 
@@ -34,7 +37,9 @@ const sample = (): Note => ({
 
 const studySample = (): Note => ({
   id: "note-sample-biology",
-  title: "Biology — photosynthesis",
+  title: "Photosynthesis",
+  subject: "Science",
+  chapter: "Ch 1: Nutrition in plants",
   text: [
     "Photosynthesis",
     "- Photosynthesis is how green plants make food from light, water and carbon dioxide",
@@ -80,6 +85,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return r.json();
 }
 
-export const noteAi = (action: NoteAction, note: Note) => post<NoteAiResult>("/api/notes/ai", { action, title: note.title, text: note.text.slice(0, 30000) });
+export const noteAi = (action: NoteAction, note: Note) =>
+  post<NoteAiResult>("/api/notes/ai", { action, title: note.title, text: note.text.slice(0, 30000), ...learnerParams() });
 
 export const readHandwriting = (image: string) => post<{ text: string; provider: string; model?: string | null }>("/api/notes/handwriting", { image });

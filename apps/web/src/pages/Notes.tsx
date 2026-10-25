@@ -34,7 +34,8 @@ import { PageHeader } from "../components/ui";
 import { InkCanvas, type InkCanvasHandle } from "../components/InkCanvas";
 import { ExamMode, ExplainBack, ReasonPicker, Revision, StudyCoach } from "../components/StudyTools";
 import { logActivity } from "../lib/progress";
-import { useSearchParams } from "react-router-dom";
+import { SUBJECTS, bandOf, loadProfile, permissions } from "../lib/profile";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { ask, loadDocs, saveDocs, upsertDoc, type AskResult, type ChatTurn, type KnowledgeDoc } from "../lib/knowledge";
 import { loadNotes, newNote, noteAi, readHandwriting, saveNotes, type Flashcard, type Note, type NoteAction, type NoteAiResult, type QuizQuestion } from "../lib/notes";
 import { addMiss, addReason, dueCount, type MissReason } from "../lib/study";
@@ -95,6 +96,9 @@ const noteDoc = (n: Note): KnowledgeDoc => ({ id: n.id, title: n.title || "My no
 export default function Notes() {
   const [notes, setNotes] = useState<Note[]>(loadNotes);
   const [params] = useSearchParams();
+  const student = useLocation().pathname.startsWith("/student");
+  const profile = loadProfile();
+  const allowed = student ? permissions(bandOf(profile.standard)) : permissions("college");
   const [activeId, setActiveId] = useState(() => notes.find((n) => n.id === params.get("note"))?.id ?? notes[0]?.id);
   const [mode, setMode] = useState<"type" | "pen">("type");
   const [tool, setTool] = useState<Tool | null>(null);
@@ -273,7 +277,10 @@ export default function Notes() {
                   className={`flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-left text-sm ${n.id === note.id ? "bg-brand-50 font-medium text-brand" : "text-slate-700 hover:bg-slate-100"}`}
                 >
                   <NotebookPen className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{n.title || "Untitled note"}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate">{n.title || "Untitled note"}</span>
+                    {student && n.subject && <span className="block truncate text-[11px] font-normal text-slate-400">{n.subject}</span>}
+                  </span>
                 </button>
                 <button onClick={() => remove(n)} className="rounded p-1 text-slate-300 hover:bg-red-50 hover:text-red-600" aria-label={`Delete ${n.title}`}>
                   <Trash2 className="h-3.5 w-3.5" />
@@ -307,6 +314,29 @@ export default function Notes() {
               ))}
             </div>
           </div>
+          {student && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 px-2 text-sm">
+              <select
+                value={note.subject ?? ""}
+                onChange={(e) => update({ subject: e.target.value || undefined })}
+                className="rounded-lg border border-slate-200 px-2 py-1 text-slate-700"
+                aria-label="Subject"
+              >
+                <option value="">Subject…</option>
+                {SUBJECTS.map((x) => (
+                  <option key={x}>{x}</option>
+                ))}
+              </select>
+              <input
+                value={note.chapter ?? ""}
+                onChange={(e) => update({ chapter: e.target.value || undefined })}
+                placeholder="Chapter or lesson"
+                className="min-w-0 flex-1 rounded-lg border border-slate-200 px-2 py-1"
+                aria-label="Chapter"
+              />
+              {profile.language === "ta" && <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-800">AI replies in Tamil</span>}
+            </div>
+          )}
 
           <div className="mt-4 flex-1">
             {mode === "type" ? (
@@ -362,7 +392,7 @@ export default function Notes() {
           <div key={g.title}>
           <div className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{g.title}</div>
           <div className="mt-1.5 grid grid-cols-2 gap-2">
-            {g.tools.map((t) => (
+            {g.tools.filter((t) => t.id !== "ask" || allowed.askFreely).map((t) => (
               <button
                 key={t.id}
                 onClick={() => run(t.id)}
@@ -412,7 +442,7 @@ export default function Notes() {
                 onRetry={() => run(tool === "mixed" ? "mixed" : "quiz")}
               />}
             {tool === "ask" && <AskNotes key={note.id} note={note} />}
-            {tool === "coach" && <StudyCoach key={note.id + coachQ} note={note} initialQuestion={coachQ} />}
+            {tool === "coach" && <StudyCoach key={note.id + coachQ} note={note} initialQuestion={coachQ} canType={allowed.typeOwnQuestion} />}
             {tool === "explain" && <ExplainBack key={note.id} note={note} onCoach={(q) => (setCoachQ(q), setTool("coach"))} />}
             {tool === "review" && <Revision />}
             {tool === "exam" && <ExamMode key={note.id} note={note} />}
