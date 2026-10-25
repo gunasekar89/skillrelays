@@ -37,7 +37,7 @@ export function logActivity(noteId: string, kind: ActivityKind, score: number, s
   write(LOG, log.slice(-500));
 }
 
-export const loadGoal = () => read<ExamGoal>(GOAL, { name: "Semester exams", date: new Date(Date.now() + 21 * DAY).toISOString().slice(0, 10) });
+export const loadGoal = () => read<ExamGoal>(GOAL, { name: "Term exams", date: new Date(Date.now() + 21 * DAY).toISOString().slice(0, 10) });
 export const saveGoal = (goal: ExamGoal) => write(GOAL, goal);
 
 export function daysLeft(goal: ExamGoal) {
