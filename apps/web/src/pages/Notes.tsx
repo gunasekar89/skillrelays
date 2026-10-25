@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   BookOpenCheck,
+  Brain,
+  CalendarClock,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -8,6 +10,7 @@ import {
   ListChecks,
   Loader2,
   MessageCircleQuestion,
+  MessageSquareText,
   Mic,
   MicOff,
   NotebookPen,
@@ -27,17 +30,25 @@ import {
 } from "lucide-react";
 import { PageHeader } from "../components/ui";
 import { InkCanvas, type InkCanvasHandle } from "../components/InkCanvas";
+import { ExplainBack, ReasonPicker, Revision, StudyCoach } from "../components/StudyTools";
+import { useSearchParams } from "react-router-dom";
 import { ask, loadDocs, saveDocs, upsertDoc, type AskResult, type ChatTurn, type KnowledgeDoc } from "../lib/knowledge";
 import { loadNotes, newNote, noteAi, readHandwriting, saveNotes, type Flashcard, type Note, type NoteAction, type NoteAiResult, type QuizQuestion } from "../lib/notes";
+import { addMiss, addReason, dueCount, type MissReason } from "../lib/study";
 import { speak, speechRecognitionSupported, stopSpeaking, useSpeechToText } from "../lib/voice";
 
-type Tool = NoteAction | "ask";
+type Tool = NoteAction | "ask" | "coach" | "explain" | "review";
+
+const STUDY_TOOLS: Tool[] = ["ask", "coach", "explain", "review"];
 
 const TOOLS: { id: Tool; label: string; hint: string; icon: ReactNode }[] = [
   { id: "summarize", label: "Summarize", hint: "Key points in seconds", icon: <Sparkles className="h-4 w-4" /> },
   { id: "tidy", label: "Tidy up", hint: "Fix spelling, neat headings", icon: <Wand2 className="h-4 w-4" /> },
   { id: "flashcards", label: "Flashcards", hint: "Flip cards to revise", icon: <Layers className="h-4 w-4" /> },
   { id: "quiz", label: "Quiz me", hint: "Multiple choice test", icon: <ListChecks className="h-4 w-4" /> },
+  { id: "coach", label: "Study coach", hint: "Try first, then hints", icon: <Brain className="h-4 w-4" /> },
+  { id: "explain", label: "Explain it back", hint: "Say it in your words", icon: <MessageSquareText className="h-4 w-4" /> },
+  { id: "review", label: "Revision", hint: "Mistakes come back", icon: <CalendarClock className="h-4 w-4" /> },
   { id: "ask", label: "Ask my notes", hint: "Questions, answered from them", icon: <MessageCircleQuestion className="h-4 w-4" /> },
 ];
 
@@ -47,7 +58,10 @@ export default function Notes() {
   const [notes, setNotes] = useState<Note[]>(loadNotes);
   const [activeId, setActiveId] = useState(() => notes[0]?.id);
   const [mode, setMode] = useState<"type" | "pen">("type");
-  const [tool, setTool] = useState<Tool | null>(null);
+  const [params] = useSearchParams();
+  const [tool, setTool] = useState<Tool | null>(params.get("tool") === "review" ? "review" : null);
+  const [coachQ, setCoachQ] = useState("");
+  const [due, setDue] = useState(dueCount);
   const [result, setResult] = useState<NoteAiResult | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -115,15 +129,19 @@ export default function Notes() {
     setTool(t);
     setResult(null);
     setError("");
+    setCoachQ("");
+    setDue(dueCount());
     stopSpeaking();
-    if (t === "ask") return;
+    if (t === "ask" || t === "review") return;
     if (!note.text.trim()) {
+      setTool(null);
       setError(note.ink ? "Tap \"Convert to text\" on your handwritten page first, so the AI can read it." : "Write or say a few notes first.");
       return;
     }
+    if (STUDY_TOOLS.includes(t)) return;
     setBusy(t);
     try {
-      setResult(await noteAi(t, note));
+      setResult(await noteAi(t as NoteAction, note));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -272,13 +290,13 @@ export default function Notes() {
                 key={t.id}
                 onClick={() => run(t.id)}
                 disabled={busy !== null}
-                className={`rounded-xl p-3 text-left ring-1 transition ${tool === t.id ? "bg-brand-50 ring-brand/40" : "ring-slate-200 hover:bg-slate-50"} ${t.id === "ask" ? "col-span-2" : ""}`}
+                className={`rounded-xl p-3 text-left ring-1 transition ${tool === t.id ? "bg-brand-50 ring-brand/40" : "ring-slate-200 hover:bg-slate-50"}`}
               >
                 <div className="flex items-center gap-2 text-sm font-semibold text-navy">
                   <span className="text-brand">{busy === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : t.icon}</span>
                   {t.label}
                 </div>
-                <div className="mt-0.5 text-xs text-slate-500">{t.hint}</div>
+                <div className={`mt-0.5 text-xs ${t.id === "review" && due ? "font-semibold text-amber-600" : "text-slate-500"}`}>{t.id === "review" && due ? `${due} due today` : t.hint}</div>
               </button>
             ))}
           </div>
@@ -305,9 +323,12 @@ export default function Notes() {
                 }}
               />
             )}
-            {result?.action === "flashcards" && <Flashcards key={result.cards.length + result.provider} cards={result.cards} provider={result} />}
-            {result?.action === "quiz" && <Quiz key={result.questions.length + result.provider} questions={result.questions} provider={result} onRetry={() => run("quiz")} />}
+            {result?.action === "flashcards" && <Flashcards key={result.cards.length + result.provider} cards={result.cards} provider={result} note={note} />}
+            {result?.action === "quiz" && <Quiz key={result.questions.length + result.provider} questions={result.questions} provider={result} note={note} onRetry={() => run("quiz")} />}
             {tool === "ask" && <AskNotes key={note.id} note={note} />}
+            {tool === "coach" && <StudyCoach key={note.id + coachQ} note={note} initialQuestion={coachQ} />}
+            {tool === "explain" && <ExplainBack key={note.id} note={note} onCoach={(q) => (setCoachQ(q), setTool("coach"))} />}
+            {tool === "review" && <Revision />}
             {!tool && !error && (
               <p className="text-sm text-slate-500">
                 Pick a tool. Everything the AI says comes from this note only, so it won't make things up.
@@ -347,7 +368,7 @@ function TextResult({ result, onUse }: { result: NoteAiResult; onUse: () => void
   );
 }
 
-function Flashcards({ cards, provider }: { cards: Flashcard[]; provider: NoteAiResult }) {
+function Flashcards({ cards, provider, note }: { cards: Flashcard[]; provider: NoteAiResult; note: Note }) {
   const [deck, setDeck] = useState(cards);
   const [i, setI] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -390,6 +411,16 @@ function Flashcards({ cards, provider }: { cards: Flashcard[]; provider: NoteAiR
         >
           <Check className="h-4 w-4" /> I know this
         </button>
+        <button
+          onClick={() => {
+            addMiss(note, card.front, card.back);
+            go(1);
+          }}
+          className="btn-ghost"
+          title="Add to your revision list; it comes back tomorrow"
+        >
+          Still learning
+        </button>
         <button onClick={() => go(1)} className="btn-ghost px-3" aria-label="Next card">
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -412,9 +443,11 @@ function Flashcards({ cards, provider }: { cards: Flashcard[]; provider: NoteAiR
   );
 }
 
-function Quiz({ questions, provider, onRetry }: { questions: QuizQuestion[]; provider: NoteAiResult; onRetry: () => void }) {
+function Quiz({ questions, provider, note, onRetry }: { questions: QuizQuestion[]; provider: NoteAiResult; note: Note; onRetry: () => void }) {
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
+  const [reason, setReason] = useState<MissReason | null>(null);
+  const [missed, setMissed] = useState(0);
   const [score, setScore] = useState(0);
   if (!questions.length) return <p className="text-sm text-slate-500">I couldn't find enough facts in this note to write a quiz. Add a few more lines.</p>;
   if (i >= questions.length) {
@@ -425,6 +458,7 @@ function Quiz({ questions, provider, onRetry }: { questions: QuizQuestion[]; pro
         <div className="mt-2 text-2xl font-bold">
           {score} / {questions.length}
         </div>
+        {missed > 0 && <p className="mt-1 text-xs text-slate-500">The {missed} you missed {missed > 1 ? "are" : "is"} on your revision list for tomorrow.</p>}
         <p className="mt-1 text-sm text-slate-500">{pct >= 80 ? "Great work, you know these notes well." : pct >= 50 ? "Good start. Review the flashcards and try again." : "Keep going. Read the summary, then try again."}</p>
         <button onClick={onRetry} className="btn-primary mt-4">
           <RotateCcw className="h-4 w-4" /> New quiz
@@ -437,6 +471,10 @@ function Quiz({ questions, provider, onRetry }: { questions: QuizQuestion[]; pro
     if (picked !== null) return;
     setPicked(k);
     if (k === q.answer) setScore((s) => s + 1);
+    else {
+      addMiss(note, q.question, q.options[q.answer]);
+      setMissed((m) => m + 1);
+    }
   };
   return (
     <div>
@@ -461,7 +499,8 @@ function Quiz({ questions, provider, onRetry }: { questions: QuizQuestion[]; pro
             <span className={picked === q.answer ? "font-semibold text-teal-700" : "font-semibold text-red-600"}>{picked === q.answer ? "Correct! " : "Not quite. "}</span>
             {q.explanation}
           </p>
-          <button onClick={() => (setI(i + 1), setPicked(null))} className="btn-primary mt-3 w-full">
+          {picked !== q.answer && <ReasonPicker picked={reason} onPick={(r) => (setReason(r), addReason(note, q.question, r))} />}
+          <button onClick={() => (setI(i + 1), setPicked(null), setReason(null))} className="btn-primary mt-3 w-full">
             {i + 1 < questions.length ? "Next question" : "See my score"}
           </button>
         </div>
