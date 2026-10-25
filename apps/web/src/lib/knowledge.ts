@@ -1,6 +1,7 @@
 // Company knowledge base for the demo: documents live in this browser's localStorage,
 // and questions go to the API (real AI when configured) with an offline fallback.
 import { generateContent, type KtSession } from "./demo";
+import { learnerParams } from "./profile";
 
 export type KnowledgeDoc = {
   id: string;
@@ -98,7 +99,12 @@ export async function ask(question: string, docs: KnowledgeDoc[], history: ChatT
     const r = await fetch("/api/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, documents: docs.map(({ id, title, text, version }) => ({ id, title, text, version })), history: history.slice(-6) }),
+      body: JSON.stringify({
+        question,
+        documents: docs.map(({ id, title, text, version }) => ({ id, title, text, version })),
+        history: history.slice(-6),
+        language: learnerParams().language,
+      }),
     });
     if (r.ok) return r.json();
   } catch {

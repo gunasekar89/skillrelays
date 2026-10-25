@@ -488,3 +488,40 @@ def test_explain_model_failure_falls_back(monkeypatch):
     monkeypatch.setattr(llm, "chat", fake_chat)
     body = client.post("/api/study/explain", json={"text": NOTES, "explanation": "Fees and library hours"}).json()
     assert body["provider"] == "Simulated (OpenAI unavailable)"
+
+
+def test_notes_simplify_without_ai():
+    body = client.post("/api/notes/ai", json={"action": "simplify", "text": NOTES}).json()
+    assert body["text"].startswith("- ") and "2.1 lakh" in body["text"] and "GCU admissions" not in body["text"]
+
+
+@pytest.mark.parametrize("text", ["I want to kill myself", "sometimes I don't want to live anymore", "my uncle hits me"])
+def test_distress_points_to_a_trusted_adult(text):
+    coach = client.post("/api/study/coach", json={"text": NOTES, "question": "MBA length?", "attempt": text, "step": 1}).json()
+    assert coach["safety"] and "14416" in coach["feedback"] and not coach["answer"] and not coach["hint"]
+    explain = client.post("/api/study/explain", json={"text": NOTES, "explanation": text}).json()
+    assert explain["safety"] and "14416" in explain["feedback"]
+    ask = client.post("/api/ask", json={"question": text, "documents": [RUNBOOK]}).json()
+    assert ask["provider"] == "Safety check"
+
+
+@pytest.mark.parametrize("text", ["kill the process with kubectl", "I'm dying to know the fee", "it hits me that fees are high", "the MBA takes two years"])
+def test_ordinary_answers_are_not_flagged(text):
+    coach = client.post("/api/study/coach", json={"text": NOTES, "question": "MBA length?", "attempt": text, "step": 0}).json()
+    assert not coach["safety"]
+
+
+def test_tamil_and_age_band_reach_the_model(monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+    seen = []
+
+    async def fake_chat(provider, messages, **kw):
+        seen.append(messages[0]["content"])
+        return '{"verdict": "partly", "feedback": "\u0ba8\u0bb2\u0bcd\u0bb2 \u0bae\u0bc1\u0baf\u0bb1\u0bcd\u0b9a\u0bbf", "hint": "", "answer": ""}', {}
+
+    monkeypatch.setattr(llm, "chat", fake_chat)
+    client.post("/api/study/coach", json={"text": NOTES, "question": "MBA length?", "attempt": "one", "step": 0, "language": "ta", "band": "4-7"})
+    client.post("/api/notes/ai", json={"action": "tidy", "text": NOTES, "language": "ta"})
+    assert "Tamil" in seen[0] and "9 to 12" in seen[0]
+    assert "Tamil" not in seen[1]

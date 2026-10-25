@@ -29,3 +29,21 @@
   background-attachment: local;
   background-position: 0 12px;
 }
+
+/* Student display settings (learner profile): larger text and higher contrast. */
+html.text-large {
+  font-size: 112.5%;
+}
+html.hc .text-slate-400,
+html.hc .text-slate-500,
+html.hc .text-slate-600 {
+  color: #1e293b !important;
+}
+html.hc .ring-slate-200,
+html.hc .border-slate-200 {
+  --tw-ring-color: #475569 !important;
+  border-color: #475569 !important;
+}
+html.hc body {
+  background: #ffffff;
+}

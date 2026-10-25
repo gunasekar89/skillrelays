@@ -17,6 +17,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from . import llm
+from .learner import Band, Language, band_rule, language_rule
 from .retrieval import tokenize
 
 log = logging.getLogger("skillrelays")
@@ -34,9 +35,11 @@ NOTES_PROMPT = (
 
 
 class NoteRequest(BaseModel):
-    action: Literal["summarize", "tidy", "flashcards", "quiz"]
+    action: Literal["summarize", "tidy", "simplify", "flashcards", "quiz"]
     title: str = Field(default="", max_length=200)
     text: str = Field(min_length=1, max_length=MAX_NOTE_CHARS)
+    language: Language = "en"
+    band: Band = "college"
 
 
 class Card(BaseModel):
@@ -138,6 +141,12 @@ def _simple_tidy(text: str) -> str:
     return "\n".join(out).strip()
 
 
+def _simple_simplify(text: str) -> str:
+    """Without a model there is no rewording: one tidied fact per line, without headings, is the simplest view."""
+    lines = [f"- {_clean(s).rstrip('.')}." for s in _sentences(text) if len(s.split()) > 5 or re.search(r"[.?!]$", s)]
+    return "\n".join(lines[:15])
+
+
 PAIR = re.compile(r"^\s*(?:[-*•]|\d+[.)])?\s*(.{2,80}?)\s*(?::|\s-\s|\s–\s|=|\bis\b|\bare\b|\bmeans\b)\s*(.{3,240})$", re.I)
 
 
@@ -206,6 +215,12 @@ INSTRUCTIONS = {
         "group related lines under short headings, and use \"- \" bullets. Keep every fact and the learner's meaning. "
         "Do not add anything new. Reply with the tidied notes only, as plain text with no markdown symbols other than \"- \"."
     ),
+    "simplify": (
+        "Explain these notes simply, for a student who finds them hard. Use short sentences and everyday words, "
+        "explain any difficult term in brackets the first time, and add one simple example or comparison where it helps, "
+        "clearly marked \"For example:\". Keep every fact from the notes and don't add new facts. "
+        "Reply with plain text only, using \"- \" bullets if there is a list."
+    ),
     "flashcards": (
         "Make up to 10 revision flashcards from these notes. Each front is a short question; each back is the answer "
         "in a few words, taken from the notes. Reply with JSON only: {\"cards\": [{\"front\": \"...\", \"back\": \"...\"}]}"
@@ -246,6 +261,8 @@ def _simulated(action: str, text: str) -> dict:
         return {"text": _simple_summary(text)}
     if action == "tidy":
         return {"text": _simple_tidy(text)}
+    if action == "simplify":
+        return {"text": _simple_simplify(text)}
     if action == "flashcards":
         return {"cards": _simple_cards(text)}
     return {"questions": _simple_quiz(text)}
@@ -257,7 +274,8 @@ async def note_ai(req: NoteRequest) -> NoteResponse:
     if provider is None:
         return NoteResponse(action=req.action, provider="Simulated", **_simulated(req.action, req.text))
     messages = [
-        {"role": "system", "content": NOTES_PROMPT},
+        # Tidying keeps the learner's own language; everything else follows their chosen one.
+        {"role": "system", "content": NOTES_PROMPT + band_rule(req.band) + ("" if req.action == "tidy" else language_rule(req.language))},
         {"role": "user", "content": f"{INSTRUCTIONS[req.action]}\n\nNotes titled \"{req.title or 'Untitled'}\":\n{req.text[:12000]}"},
     ]
     try:

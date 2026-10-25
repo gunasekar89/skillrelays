@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { BarChart3, Bot, FileText, GraduationCap, LayoutDashboard, Mic, NotebookPen } from "lucide-react";
+import { Bot, FileText, GraduationCap, LayoutDashboard, Mic, NotebookPen } from "lucide-react";
 import { AppShell } from "./components/AppShell";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -14,10 +14,10 @@ import Assistant from "./pages/enterprise/Assistant";
 import Notes from "./pages/Notes";
 
 const studentNav = [
-  { to: "/student", label: "Dashboard", icon: <LayoutDashboard />, end: true },
-  { to: "/student/interview", label: "Mock Interview", icon: <Mic /> },
-  { to: "/student/results", label: "Interview Results", icon: <BarChart3 /> },
-  { to: "/student/notes", label: "AI Notes", icon: <NotebookPen /> },
+  { to: "/student", label: "Home", icon: <LayoutDashboard />, end: true },
+  { to: "/student/notes", label: "My notes", icon: <NotebookPen /> },
+  // Kept from the interview-first version; the student product is now study-first.
+  { to: "/student/interview", label: "Speaking practice", icon: <Mic /> },
 ];
 
 const enterpriseNav = [

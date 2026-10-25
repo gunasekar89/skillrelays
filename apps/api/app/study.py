@@ -16,7 +16,8 @@ from typing import Literal
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from . import llm
+from . import llm, safety
+from .learner import Band, Language, band_rule, language_rule
 from .notes import MAX_NOTE_CHARS, NOTES_PROMPT, _cards_by_kind, _clean, _json, _sentences
 from .retrieval import tokenize
 
@@ -33,6 +34,8 @@ class QuestionRequest(BaseModel):
     title: str = Field(default="", max_length=200)
     text: str = Field(min_length=1, max_length=MAX_NOTE_CHARS)
     skip: list[str] = Field(default_factory=list, max_length=50)
+    language: Language = "en"
+    band: Band = "college"
 
 
 class QuestionResponse(BaseModel):
@@ -47,6 +50,8 @@ class CoachRequest(BaseModel):
     question: str = Field(min_length=3, max_length=500)
     attempt: str = Field(default="", max_length=2000)
     step: int = Field(default=0, ge=0, le=LAST_STEP)  # how many hints the learner has had, including this one
+    language: Language = "en"
+    band: Band = "college"
 
 
 class CoachResponse(BaseModel):
@@ -55,6 +60,7 @@ class CoachResponse(BaseModel):
     hint: str = ""
     answer: str = ""  # only on the last step, or once the learner has it right
     step: int
+    safety: bool = False  # the learner may be in distress: the reply points to a trusted adult instead
     provider: str
     model: str | None = None
 
@@ -63,6 +69,8 @@ class ExplainRequest(BaseModel):
     title: str = Field(default="", max_length=200)
     text: str = Field(min_length=1, max_length=MAX_NOTE_CHARS)
     explanation: str = Field(min_length=1, max_length=6000)
+    language: Language = "en"
+    band: Band = "college"
 
 
 class ExplainResponse(BaseModel):
@@ -72,6 +80,7 @@ class ExplainResponse(BaseModel):
     missed: list[str] = Field(default_factory=list)
     mistakes: list[str] = Field(default_factory=list)
     follow_up: str = ""
+    safety: bool = False
     provider: str
     model: str | None = None
 
@@ -259,7 +268,7 @@ def _fallback_name(exc: Exception) -> str:
 async def question(req: QuestionRequest) -> QuestionResponse:
     avoid = "\n".join(f"- {q}" for q in req.skip[-10:])
     messages = [
-        {"role": "system", "content": NOTES_PROMPT},
+        {"role": "system", "content": NOTES_PROMPT + band_rule(req.band) + language_rule(req.language)},
         {"role": "user", "content": f"{QUESTION_PROMPT}" + (f"\nDon't repeat these:\n{avoid}" if avoid else "") + f"\n\n{_notes_block(req.title, req.text)}"},
     ]
     try:
@@ -276,8 +285,10 @@ async def question(req: QuestionRequest) -> QuestionResponse:
 
 @router.post("/coach", response_model=CoachResponse)
 async def coach(req: CoachRequest) -> CoachResponse:
+    if safety.distress(req.attempt, req.question):
+        return CoachResponse(verdict="none", feedback=safety.MESSAGE, step=req.step, safety=True, provider="Safety check")
     messages = [
-        {"role": "system", "content": f"{NOTES_PROMPT}\n\n{COACH_PROMPT.format(step=req.step)}"},
+        {"role": "system", "content": f"{NOTES_PROMPT}\n\n{COACH_PROMPT.format(step=req.step)}{band_rule(req.band)}{language_rule(req.language)}"},
         {
             "role": "user",
             "content": f"{_notes_block(req.title, req.text)}\n\nQuestion: {req.question}\nLearner's attempt: {req.attempt or '(no attempt yet)'}\nHint step: {req.step}",
@@ -306,8 +317,10 @@ async def coach(req: CoachRequest) -> CoachResponse:
 
 @router.post("/explain", response_model=ExplainResponse)
 async def explain(req: ExplainRequest) -> ExplainResponse:
+    if safety.distress(req.explanation):
+        return ExplainResponse(score=0, feedback=safety.MESSAGE, safety=True, provider="Safety check")
     messages = [
-        {"role": "system", "content": f"{NOTES_PROMPT}\n\n{EXPLAIN_PROMPT}"},
+        {"role": "system", "content": f"{NOTES_PROMPT}\n\n{EXPLAIN_PROMPT}{band_rule(req.band)}{language_rule(req.language)}"},
         {"role": "user", "content": f"{_notes_block(req.title, req.text)}\n\nThe learner's explanation:\n{req.explanation}"},
     ]
     try:

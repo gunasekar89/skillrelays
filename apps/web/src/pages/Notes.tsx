@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
+  BookOpen,
   BookOpenCheck,
   Brain,
   CalendarClock,
@@ -21,6 +22,7 @@ import {
   Send,
   Shuffle,
   Sparkles,
+  Timer,
   Trash2,
   Type,
   Upload,
@@ -30,36 +32,77 @@ import {
 } from "lucide-react";
 import { PageHeader } from "../components/ui";
 import { InkCanvas, type InkCanvasHandle } from "../components/InkCanvas";
-import { ExplainBack, ReasonPicker, Revision, StudyCoach } from "../components/StudyTools";
-import { useSearchParams } from "react-router-dom";
+import { ExamMode, ExplainBack, ReasonPicker, Revision, StudyCoach } from "../components/StudyTools";
+import { logActivity } from "../lib/progress";
+import { SUBJECTS, bandOf, loadProfile, permissions } from "../lib/profile";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { ask, loadDocs, saveDocs, upsertDoc, type AskResult, type ChatTurn, type KnowledgeDoc } from "../lib/knowledge";
 import { loadNotes, newNote, noteAi, readHandwriting, saveNotes, type Flashcard, type Note, type NoteAction, type NoteAiResult, type QuizQuestion } from "../lib/notes";
 import { addMiss, addReason, dueCount, type MissReason } from "../lib/study";
 import { speak, speechRecognitionSupported, stopSpeaking, useSpeechToText } from "../lib/voice";
 
-type Tool = NoteAction | "ask" | "coach" | "explain" | "review";
+type Tool = NoteAction | "ask" | "coach" | "explain" | "review" | "mixed" | "exam";
 
-const STUDY_TOOLS: Tool[] = ["ask", "coach", "explain", "review"];
+const STUDY_TOOLS: Tool[] = ["ask", "coach", "explain", "review", "exam"];
+const TOOL_IDS: Tool[] = ["summarize", "tidy", "simplify", "flashcards", "quiz", "ask", "coach", "explain", "review", "mixed", "exam"];
 
-const TOOLS: { id: Tool; label: string; hint: string; icon: ReactNode }[] = [
-  { id: "summarize", label: "Summarize", hint: "Key points in seconds", icon: <Sparkles className="h-4 w-4" /> },
-  { id: "tidy", label: "Tidy up", hint: "Fix spelling, neat headings", icon: <Wand2 className="h-4 w-4" /> },
-  { id: "flashcards", label: "Flashcards", hint: "Flip cards to revise", icon: <Layers className="h-4 w-4" /> },
-  { id: "quiz", label: "Quiz me", hint: "Multiple choice test", icon: <ListChecks className="h-4 w-4" /> },
-  { id: "coach", label: "Study coach", hint: "Try first, then hints", icon: <Brain className="h-4 w-4" /> },
-  { id: "explain", label: "Explain it back", hint: "Say it in your words", icon: <MessageSquareText className="h-4 w-4" /> },
-  { id: "review", label: "Revision", hint: "Mistakes come back", icon: <CalendarClock className="h-4 w-4" /> },
-  { id: "ask", label: "Ask my notes", hint: "Questions, answered from them", icon: <MessageCircleQuestion className="h-4 w-4" /> },
+type ToolInfo = { id: Tool; label: string; hint: string; icon: ReactNode };
+
+// Grouped the way a study session runs: understand the notes, practise them, then test and review.
+const TOOL_GROUPS: { title: string; tools: ToolInfo[] }[] = [
+  {
+    title: "Understand",
+    tools: [
+      { id: "summarize", label: "Summarize", hint: "Key points in seconds", icon: <Sparkles className="h-4 w-4" /> },
+      { id: "simplify", label: "Explain simply", hint: "Easy words, examples", icon: <BookOpen className="h-4 w-4" /> },
+      { id: "tidy", label: "Tidy up", hint: "Fix spelling, neat headings", icon: <Wand2 className="h-4 w-4" /> },
+      { id: "ask", label: "Ask my notes", hint: "Answers from this note", icon: <MessageCircleQuestion className="h-4 w-4" /> },
+    ],
+  },
+  {
+    title: "Practise",
+    tools: [
+      { id: "coach", label: "Study coach", hint: "Try first, then hints", icon: <Brain className="h-4 w-4" /> },
+      { id: "explain", label: "Explain it back", hint: "Say it in your words", icon: <MessageSquareText className="h-4 w-4" /> },
+      { id: "flashcards", label: "Flashcards", hint: "Flip cards to revise", icon: <Layers className="h-4 w-4" /> },
+      { id: "quiz", label: "Quiz me", hint: "With a confidence check", icon: <ListChecks className="h-4 w-4" /> },
+    ],
+  },
+  {
+    title: "Test and review",
+    tools: [
+      { id: "mixed", label: "Mixed practice", hint: "Questions from all notes", icon: <Shuffle className="h-4 w-4" /> },
+      { id: "exam", label: "Exam mode", hint: "Timed, no help", icon: <Timer className="h-4 w-4" /> },
+      { id: "review", label: "Revision", hint: "Mistakes come back", icon: <CalendarClock className="h-4 w-4" /> },
+    ],
+  },
 ];
+
+const MIXED_ID = "mixed";
+
+/** All notes with text as one source, for a quiz that mixes topics. */
+const mixedNote = (notes: Note[]): Note => ({
+  id: MIXED_ID,
+  title: "Mixed practice",
+  text: notes
+    .filter((n) => n.text.trim())
+    .map((n) => `${n.title}\n${n.text.slice(0, 4000)}`)
+    .join("\n\n"),
+  updatedAt: new Date().toISOString(),
+});
 
 const noteDoc = (n: Note): KnowledgeDoc => ({ id: n.id, title: n.title || "My notes", text: n.text, version: 1, updatedAt: n.updatedAt, source: "manual" });
 
 export default function Notes() {
   const [notes, setNotes] = useState<Note[]>(loadNotes);
-  const [activeId, setActiveId] = useState(() => notes[0]?.id);
-  const [mode, setMode] = useState<"type" | "pen">("type");
   const [params] = useSearchParams();
-  const [tool, setTool] = useState<Tool | null>(params.get("tool") === "review" ? "review" : null);
+  const student = useLocation().pathname.startsWith("/student");
+  const profile = loadProfile();
+  const allowed = student ? permissions(bandOf(profile.standard)) : permissions("college");
+  const [activeId, setActiveId] = useState(() => notes.find((n) => n.id === params.get("note"))?.id ?? notes[0]?.id);
+  const [mode, setMode] = useState<"type" | "pen">("type");
+  const [tool, setTool] = useState<Tool | null>(null);
+  const [listening, setListening] = useState(false);
   const [coachQ, setCoachQ] = useState("");
   const [due, setDue] = useState(dueCount);
   const [result, setResult] = useState<NoteAiResult | null>(null);
@@ -133,6 +176,22 @@ export default function Notes() {
     setDue(dueCount());
     stopSpeaking();
     if (t === "ask" || t === "review") return;
+    if (t === "mixed") {
+      if (notes.filter((n) => n.text.trim()).length < 2) {
+        setTool(null);
+        setError("Mixed practice needs at least two notes with text. Add another note first.");
+        return;
+      }
+      setBusy(t);
+      try {
+        setResult(await noteAi("quiz", mixedNote(notes)));
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Something went wrong.");
+      } finally {
+        setBusy(null);
+      }
+      return;
+    }
     if (!note.text.trim()) {
       setTool(null);
       setError(note.ink ? "Tap \"Convert to text\" on your handwritten page first, so the AI can read it." : "Write or say a few notes first.");
@@ -147,6 +206,22 @@ export default function Notes() {
     } finally {
       setBusy(null);
     }
+  };
+
+  // Links from the student home open a note with a tool already chosen, e.g. ?note=…&tool=coach.
+  useEffect(() => {
+    const t = params.get("tool") as Tool | null;
+    if (t && TOOL_IDS.includes(t)) run(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const listen = () => {
+    if (listening) {
+      stopSpeaking();
+      return setListening(false);
+    }
+    setListening(true);
+    speak(`${note.title}. ${note.text.replace(/^\s*[-*•]\s*/gm, "")}`, () => setListening(false));
   };
 
   const convertInk = async () => {
@@ -202,7 +277,10 @@ export default function Notes() {
                   className={`flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-left text-sm ${n.id === note.id ? "bg-brand-50 font-medium text-brand" : "text-slate-700 hover:bg-slate-100"}`}
                 >
                   <NotebookPen className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{n.title || "Untitled note"}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate">{n.title || "Untitled note"}</span>
+                    {student && n.subject && <span className="block truncate text-[11px] font-normal text-slate-400">{n.subject}</span>}
+                  </span>
                 </button>
                 <button onClick={() => remove(n)} className="rounded p-1 text-slate-300 hover:bg-red-50 hover:text-red-600" aria-label={`Delete ${n.title}`}>
                   <Trash2 className="h-3.5 w-3.5" />
@@ -236,6 +314,29 @@ export default function Notes() {
               ))}
             </div>
           </div>
+          {student && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 px-2 text-sm">
+              <select
+                value={note.subject ?? ""}
+                onChange={(e) => update({ subject: e.target.value || undefined })}
+                className="rounded-lg border border-slate-200 px-2 py-1 text-slate-700"
+                aria-label="Subject"
+              >
+                <option value="">Subject…</option>
+                {SUBJECTS.map((x) => (
+                  <option key={x}>{x}</option>
+                ))}
+              </select>
+              <input
+                value={note.chapter ?? ""}
+                onChange={(e) => update({ chapter: e.target.value || undefined })}
+                placeholder="Chapter or lesson"
+                className="min-w-0 flex-1 rounded-lg border border-slate-200 px-2 py-1"
+                aria-label="Chapter"
+              />
+              {profile.language === "ta" && <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-800">AI replies in Tamil</span>}
+            </div>
+          )}
 
           <div className="mt-4 flex-1">
             {mode === "type" ? (
@@ -263,6 +364,9 @@ export default function Notes() {
                 {busy === "ink" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanText className="h-4 w-4" />} Convert to text
               </button>
             )}
+            <button onClick={listen} disabled={!note.text.trim()} className="btn-ghost" title="Read these notes out loud">
+              <Volume2 className="h-4 w-4" /> {listening ? "Stop reading" : "Listen"}
+            </button>
             <button onClick={shareToTraining} disabled={!note.text.trim()} className="btn-ghost" title="Make these notes searchable by the AI assistant">
               <Upload className="h-4 w-4" /> Add to training documents
             </button>
@@ -284,8 +388,11 @@ export default function Notes() {
           <div className="flex items-center gap-2 font-semibold">
             <Sparkles className="h-4 w-4 text-teal" /> AI tools
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {TOOLS.map((t) => (
+          {TOOL_GROUPS.map((g) => (
+          <div key={g.title}>
+          <div className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{g.title}</div>
+          <div className="mt-1.5 grid grid-cols-2 gap-2">
+            {g.tools.filter((t) => t.id !== "ask" || allowed.askFreely).map((t) => (
               <button
                 key={t.id}
                 onClick={() => run(t.id)}
@@ -300,6 +407,8 @@ export default function Notes() {
               </button>
             ))}
           </div>
+          </div>
+          ))}
 
           <div className="mt-4">
             {error && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800 ring-1 ring-amber-200">{error}</p>}
@@ -308,7 +417,7 @@ export default function Notes() {
                 <Loader2 className="h-4 w-4 animate-spin" /> Reading your notes…
               </div>
             )}
-            {result && (result.action === "summarize" || result.action === "tidy") && (
+            {result && (result.action === "summarize" || result.action === "tidy" || result.action === "simplify") && (
               <TextResult
                 result={result}
                 onUse={() => {
@@ -317,18 +426,26 @@ export default function Notes() {
                     update({ text: result.text });
                     setFlash("Your notes were tidied up.");
                   } else {
-                    update({ text: `${note.text.trimEnd()}\n\nSummary\n${result.text}` });
-                    setFlash("Summary added to the end of your notes.");
+                    const heading = result.action === "simplify" ? "In simple words" : "Summary";
+                    update({ text: `${note.text.trimEnd()}\n\n${heading}\n${result.text}` });
+                    setFlash(`${heading} added to the end of your notes.`);
                   }
                 }}
               />
             )}
             {result?.action === "flashcards" && <Flashcards key={result.cards.length + result.provider} cards={result.cards} provider={result} note={note} />}
-            {result?.action === "quiz" && <Quiz key={result.questions.length + result.provider} questions={result.questions} provider={result} note={note} onRetry={() => run("quiz")} />}
+            {result?.action === "quiz" && <Quiz
+                key={`${tool}${result.questions.length}${result.provider}`}
+                questions={result.questions}
+                provider={result}
+                note={tool === "mixed" ? mixedNote(notes) : note}
+                onRetry={() => run(tool === "mixed" ? "mixed" : "quiz")}
+              />}
             {tool === "ask" && <AskNotes key={note.id} note={note} />}
-            {tool === "coach" && <StudyCoach key={note.id + coachQ} note={note} initialQuestion={coachQ} />}
+            {tool === "coach" && <StudyCoach key={note.id + coachQ} note={note} initialQuestion={coachQ} canType={allowed.typeOwnQuestion} />}
             {tool === "explain" && <ExplainBack key={note.id} note={note} onCoach={(q) => (setCoachQ(q), setTool("coach"))} />}
             {tool === "review" && <Revision />}
+            {tool === "exam" && <ExamMode key={note.id} note={note} />}
             {!tool && !error && (
               <p className="text-sm text-slate-500">
                 Pick a tool. Everything the AI says comes from this note only, so it won't make things up.
@@ -353,7 +470,7 @@ function Provider({ r }: { r: { provider: string; model?: string | null } }) {
 function TextResult({ result, onUse }: { result: NoteAiResult; onUse: () => void }) {
   return (
     <div>
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{result.action === "tidy" ? "Tidied notes" : "Summary"}</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{result.action === "tidy" ? "Tidied notes" : result.action === "simplify" ? "In simple words" : "Summary"}</div>
       <div className="mt-2 max-h-80 overflow-y-auto whitespace-pre-line rounded-xl bg-slate-50 p-3 text-sm leading-relaxed">{result.text}</div>
       <div className="mt-3 flex flex-wrap gap-2">
         <button onClick={onUse} className="btn-primary">
@@ -445,10 +562,20 @@ function Flashcards({ cards, provider, note }: { cards: Flashcard[]; provider: N
 
 function Quiz({ questions, provider, note, onRetry }: { questions: QuizQuestion[]; provider: NoteAiResult; note: Note; onRetry: () => void }) {
   const [i, setI] = useState(0);
-  const [picked, setPicked] = useState<number | null>(null);
+  const [chosen, setChosen] = useState<number | null>(null); // picked, waiting for "how sure?"
+  const [picked, setPicked] = useState<number | null>(null); // revealed
+  const [sure, setSure] = useState({ right: 0, wrong: 0 });
   const [reason, setReason] = useState<MissReason | null>(null);
   const [missed, setMissed] = useState(0);
   const [score, setScore] = useState(0);
+  const logged = useRef(false);
+
+  useEffect(() => {
+    if (i < questions.length || logged.current || !questions.length) return;
+    logged.current = true;
+    logActivity(note.id, note.id === "mixed" ? "mixed" : "quiz", score / questions.length, sure);
+  }, [i, questions.length, note.id, score, sure]);
+
   if (!questions.length) return <p className="text-sm text-slate-500">I couldn't find enough facts in this note to write a quiz. Add a few more lines.</p>;
   if (i >= questions.length) {
     const pct = Math.round((score / questions.length) * 100);
@@ -459,7 +586,13 @@ function Quiz({ questions, provider, note, onRetry }: { questions: QuizQuestion[
           {score} / {questions.length}
         </div>
         {missed > 0 && <p className="mt-1 text-xs text-slate-500">The {missed} you missed {missed > 1 ? "are" : "is"} on your revision list for tomorrow.</p>}
-        <p className="mt-1 text-sm text-slate-500">{pct >= 80 ? "Great work, you know these notes well." : pct >= 50 ? "Good start. Review the flashcards and try again." : "Keep going. Read the summary, then try again."}</p>
+        <p className="mt-1 text-sm text-slate-500">{pct >= 80 ? "Great work, you know these notes well." : pct >= 50 ? "Good start. Try the Study coach on what you missed." : "Keep going. Read the summary, then try again."}</p>
+        {sure.wrong > 0 && (
+          <p className="mt-3 rounded-lg bg-amber-50 p-3 text-left text-xs text-amber-900">
+            <span className="font-semibold">Confidence check:</span> you were sure about {sure.wrong} answer{sure.wrong > 1 ? "s" : ""} that {sure.wrong > 1 ? "were" : "was"} wrong. Those are the most important ones to revise, because feeling sure stops you checking.
+          </p>
+        )}
+        {sure.wrong === 0 && sure.right > 0 && <p className="mt-3 text-xs text-teal-700">Every answer you were sure about was right. Your confidence matches what you know.</p>}
         <button onClick={onRetry} className="btn-primary mt-4">
           <RotateCcw className="h-4 w-4" /> New quiz
         </button>
@@ -467,10 +600,12 @@ function Quiz({ questions, provider, note, onRetry }: { questions: QuizQuestion[
     );
   }
   const q = questions[i];
-  const choose = (k: number) => {
-    if (picked !== null) return;
+  const reveal = (k: number, isSure: boolean) => {
     setPicked(k);
-    if (k === q.answer) setScore((s) => s + 1);
+    setChosen(null);
+    const right = k === q.answer;
+    if (isSure) setSure((s) => (right ? { ...s, right: s.right + 1 } : { ...s, wrong: s.wrong + 1 }));
+    if (right) setScore((s) => s + 1);
     else {
       addMiss(note, q.question, q.options[q.answer]);
       setMissed((m) => m + 1);
@@ -484,15 +619,41 @@ function Quiz({ questions, provider, note, onRetry }: { questions: QuizQuestion[
       <p className="mt-2 font-medium">{q.question}</p>
       <div className="mt-3 space-y-2">
         {q.options.map((o, k) => {
-          const state = picked === null ? "" : k === q.answer ? "bg-teal-50 ring-teal text-teal-900" : k === picked ? "bg-red-50 ring-red-300 text-red-800" : "opacity-60";
+          const state =
+            picked === null
+              ? chosen === k
+                ? "bg-brand-50 ring-brand"
+                : ""
+              : k === q.answer
+                ? "bg-teal-50 ring-teal text-teal-900"
+                : k === picked
+                  ? "bg-red-50 ring-red-300 text-red-800"
+                  : "opacity-60";
           return (
-            <button key={k} onClick={() => choose(k)} className={`w-full rounded-lg px-3 py-2 text-left text-sm ring-1 ring-slate-200 ${picked === null ? "hover:bg-slate-50" : ""} ${state}`}>
+            <button
+              key={k}
+              onClick={() => picked === null && setChosen(k)}
+              className={`w-full rounded-lg px-3 py-2 text-left text-sm ring-1 ring-slate-200 ${picked === null ? "hover:bg-slate-50" : ""} ${state}`}
+            >
               <span className="mr-2 font-semibold text-slate-400">{String.fromCharCode(65 + k)}</span>
               {o}
             </button>
           );
         })}
       </div>
+      {chosen !== null && (
+        <div className="mt-3 rounded-xl bg-slate-50 p-3">
+          <div className="text-xs font-semibold text-slate-600">How sure are you?</div>
+          <div className="mt-2 flex gap-2">
+            <button onClick={() => reveal(chosen, true)} className="btn-primary flex-1">
+              I'm sure
+            </button>
+            <button onClick={() => reveal(chosen, false)} className="btn-ghost flex-1">
+              I'm guessing
+            </button>
+          </div>
+        </div>
+      )}
       {picked !== null && (
         <div className="mt-3">
           <p className="text-sm">

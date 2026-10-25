@@ -13,7 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from . import llm, notes, study, web
+from . import llm, notes, safety, study, web
+from .learner import Language, language_rule
 from .retrieval import Chunk, Hit, best_sentences, chunk_document, coverage, idf_table, search, tokenize, without_name
 
 log = logging.getLogger("skillrelays")
@@ -60,6 +61,7 @@ class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=1000)
     documents: list[Document] = Field(max_length=50)
     history: list[Turn] = Field(default_factory=list, max_length=12)
+    language: Language = "en"
 
 
 class Citation(BaseModel):
@@ -261,7 +263,7 @@ async def _web_answer(req: AskRequest, provider: llm.Provider) -> AskResponse | 
         "\"This isn't in the training document, but the official website says:\" "
         "If the passages don't answer it, reply only: \"I couldn't find that in the training document or on the official website.\""
     )
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}, *_history(req, turns=2)]
+    messages = [{"role": "system", "content": SYSTEM_PROMPT + language_rule(req.language)}, *_history(req, turns=2)]
     messages.append({"role": "user", "content": f"{instruction}\n\nWebsite passages:\n{sources}\n\nMessage: {req.question}"})
     try:
         answer, usage = await llm.chat(provider, messages)
@@ -276,6 +278,8 @@ async def _web_answer(req: AskRequest, provider: llm.Provider) -> AskResponse | 
 
 @app.post("/api/ask", response_model=AskResponse)
 async def ask(req: AskRequest) -> AskResponse:
+    if safety.distress(req.question):
+        return AskResponse(answer=safety.MESSAGE, citations=[], grounded=False, provider="Safety check")
     provider = llm.configured_provider()
     step = _training_step(req)
     if step:
@@ -311,7 +315,7 @@ async def ask(req: AskRequest) -> AskResponse:
     context_hits = hits or [Hit(c, 0.0) for d in req.documents for c in [x for x in chunks if x.doc_id == d.id][:2]][:4]
     citations, texts = _sources(context_hits, req)
     sources = "\n\n".join(f"[{c.n}] {c.title} (v{c.version}):\n{t}" for c, t in zip(citations, texts)) or "(no documents uploaded)"
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    messages = [{"role": "system", "content": SYSTEM_PROMPT + language_rule(req.language)}]
     messages += _history(req)
     messages.append({"role": "user", "content": f"Document outline:\n{_outline(req, limit=20)}\n\nSources:\n{sources}\n\nMessage: {req.question}"})
     try:
@@ -351,7 +355,7 @@ async def _teach(req: AskRequest, provider: llm.Provider | None, doc: Document, 
         "Explain it in simple words using ONLY the facts in the section text: keep the real names, numbers and rules, and add nothing else. "
         "Keep it under 150 words, cite it as [1], then ask one short check question and end with: Say \"next\" to continue."
     )
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}, *_history(req, turns=2)]
+    messages = [{"role": "system", "content": SYSTEM_PROMPT + language_rule(req.language)}, *_history(req, turns=2)]
     messages.append({"role": "user", "content": f"{instruction}\n\nSection text [1] ({doc.title}, v{doc.version}):\n{body[:3000]}\n\nMessage: {req.question}"})
     try:
         answer, usage = await llm.chat(provider, messages)
@@ -379,7 +383,7 @@ async def _grade(req: AskRequest, provider: llm.Provider | None, doc: Document, 
         "Then give the right answer in one or two simple sentences with [1], using only facts from the section text. "
         f"End with exactly: {ending}"
     )
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}, *_history(req, turns=2)]
+    messages = [{"role": "system", "content": SYSTEM_PROMPT + language_rule(req.language)}, *_history(req, turns=2)]
     messages.append({"role": "user", "content": f"{instruction}\n\nSection text [1] ({doc.title}, v{doc.version}):\n{body[:3000]}\n\nTrainee's answer: {req.question}"})
     try:
         answer, usage = await llm.chat(provider, messages)

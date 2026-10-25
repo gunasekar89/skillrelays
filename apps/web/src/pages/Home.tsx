@@ -60,7 +60,7 @@ export default function Home() {
               <span className="bg-gradient-to-r from-teal to-cyan-300 bg-clip-text text-transparent">into Capability.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-slate-300">
-              AI-powered interview preparation for individuals, and knowledge transfer that turns every expert session into training for organizations.
+              An AI study companion for students, and knowledge transfer that turns every expert session into training for organizations.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/student" className="btn-primary px-5 py-3 text-base">
@@ -90,8 +90,8 @@ export default function Home() {
             <ProductCard
               tag="For individuals"
               name="Student"
-              tagline="Practice Smarter. Interview Better. Get Hired."
-              features={["AI mock interviews by voice", "Resume analysis", "Personalized learning", "Instant coaching"]}
+              tagline="Study Smarter. Remember Longer. Ace Your Exams."
+              features={["AI notes, flashcards and quizzes", "A study coach that gives hints, not answers", "Spaced revision of your mistakes", "A daily study plan"]}
               cta="Start practicing"
               to="/student"
               accent="brand"
@@ -187,8 +187,8 @@ export default function Home() {
           <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">Shared AI foundation, separate workspaces, permissions and plans.</p>
           <div className="mt-12 grid gap-5 md:grid-cols-3">
             {[
-              { icon: <Mic />, title: "Voice mock interviews", text: "An AI interviewer asks questions out loud, listens to your answer and follows up like a real person." },
-              { icon: <Target />, title: "Transparent scoring", text: "Technical, communication and completeness scores from a rubric you can read. Never a hiring decision." },
+              { icon: <Mic />, title: "Study that sticks", text: "A coach that makes you try first, explain-it-back by voice, and revision that brings mistakes back after 1, 3 and 7 days." },
+              { icon: <Target />, title: "Answers from your notes", text: "The AI works only from the notes and documents you give it, so it doesn't make things up." },
               { icon: <Wand2 />, title: "KT to training, automatically", text: "Summaries, process steps, FAQs and quizzes drafted from the session, each traceable to the transcript." },
               { icon: <ClipboardCheck />, title: "Trainer approval", text: "Nothing is published until a trainer reviews and approves it." },
               { icon: <BarChart3 />, title: "Readiness analytics", text: "See completion, skill readiness and knowledge gaps across teams." },
@@ -210,7 +210,7 @@ export default function Home() {
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Built for honest, consented learning</h2>
             <p className="mt-3 text-slate-300">
-              We never record silently, and we never help anyone misrepresent their own performance in a real interview. Generated content is labeled as a
+              We never record silently, and our study tools help students think for themselves instead of handing them answers. Generated content is labeled as a
               draft until a human approves it.
             </p>
           </div>
@@ -218,8 +218,8 @@ export default function Home() {
             <Link to="/enterprise/kt" className="btn bg-teal px-5 py-3 text-base text-navy hover:bg-teal-50">
               Try the KT demo <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link to="/student/interview" className="btn px-5 py-3 text-base text-white ring-1 ring-white/30 hover:bg-white/10">
-              Try a voice interview
+            <Link to="/student" className="btn px-5 py-3 text-base text-white ring-1 ring-white/30 hover:bg-white/10">
+              Try the student study app
             </Link>
           </div>
         </div>

@@ -1,12 +1,27 @@
-import { useState, type ReactNode } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { useEffect, useState, type ReactNode } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
+import { applyDisplay, loadProfile, standardLabel } from "../lib/profile";
 
 export type NavItem = { to: string; label: string; icon: ReactNode; end?: boolean };
 
 export function AppShell({ nav, user, context }: { nav: NavItem[]; user: { name: string; role: string }; context: string }) {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const [, refresh] = useState(0);
+
+  // Student display settings (text size, contrast) apply only inside the student workspace.
+  useEffect(() => applyDisplay(), [location.pathname]);
+  useEffect(() => {
+    const onChange = () => refresh((n) => n + 1);
+    window.addEventListener("sr-profile", onChange);
+    return () => window.removeEventListener("sr-profile", onChange);
+  }, []);
+  if (context === "Student") {
+    const p = loadProfile();
+    user = { name: p.name || user.name, role: `${standardLabel(p.standard)}${p.standard === "college" ? "" : ` · ${p.board}`}` };
+  }
   const sidebar = (
     <nav className="flex flex-col gap-1 p-3">
       {nav.map((n) => (
