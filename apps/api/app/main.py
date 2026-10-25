@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from . import llm, notes, safety, study, web
+from . import calendar, llm, notes, safety, study, web
 from .learner import Language, language_rule
 from .retrieval import Chunk, Hit, best_sentences, chunk_document, coverage, idf_table, search, tokenize, without_name
 
@@ -28,6 +28,7 @@ app.add_middleware(
 )
 app.include_router(notes.router)
 app.include_router(study.router)
+app.include_router(calendar.router)
 
 MAX_DOC_CHARS = 400_000
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024

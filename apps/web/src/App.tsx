@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { Bot, FileText, GraduationCap, LayoutDashboard, Mic, NotebookPen } from "lucide-react";
+import { Bot, CalendarDays, FileText, GraduationCap, LayoutDashboard, Mic, NotebookPen } from "lucide-react";
 import { AppShell } from "./components/AppShell";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -12,9 +12,12 @@ import Content from "./pages/enterprise/Content";
 import Learn from "./pages/enterprise/Learn";
 import Assistant from "./pages/enterprise/Assistant";
 import Notes from "./pages/Notes";
+import CalendarPage from "./pages/student/Calendar";
+import { ReminderWatcher } from "./components/calendar/ReminderWatcher";
 
 const studentNav = [
   { to: "/student", label: "Home", icon: <LayoutDashboard />, end: true },
+  { to: "/student/calendar", label: "Calendar", icon: <CalendarDays /> },
   { to: "/student/notes", label: "My notes", icon: <NotebookPen /> },
   // Kept from the interview-first version; the student product is now study-first.
   { to: "/student/interview", label: "Speaking practice", icon: <Mic /> },
@@ -34,11 +37,19 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
-      <Route element={<AppShell nav={studentNav} user={{ name: "Sneha", role: "Student" }} context="Student" />}>
+      <Route
+        element={
+          <>
+            <ReminderWatcher />
+            <AppShell nav={studentNav} user={{ name: "Sneha", role: "Student" }} context="Student" />
+          </>
+        }
+      >
         <Route path="/student" element={<StudentDashboard />} />
         <Route path="/student/interview" element={<MockInterview />} />
         <Route path="/student/results" element={<Results />} />
         <Route path="/student/notes" element={<Notes />} />
+        <Route path="/student/calendar" element={<CalendarPage />} />
       </Route>
       <Route element={<AppShell nav={enterpriseNav} user={{ name: "Rajesh", role: "Org Admin" }} context="Acme Technologies" />}>
         <Route path="/enterprise" element={<OrgDashboard />} />

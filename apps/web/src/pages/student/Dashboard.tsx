@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { Award, CalendarClock, CheckCircle2, Circle, Copy, Flame, Gauge, NotebookPen, Pencil, Send, Settings, Target } from "lucide-react";
+import { Award, CalendarClock, CalendarDays, CheckCircle2, Circle, Copy, Flame, Gauge, NotebookPen, Pencil, Send, Settings, Target } from "lucide-react";
 import { PageHeader, StatCard } from "../../components/ui";
 import { ensureSample, loadNotes } from "../../lib/notes";
 import { badges, calibration, daysLeft, loadActivity, loadGoal, mastery, masteryWord, parentSummary, practiceDays, saveGoal, todaysPlan, type ExamGoal } from "../../lib/progress";
 import { bandOf, DEFAULT_PROFILE, hasProfile, loadProfile, saveProfile, type Profile } from "../../lib/profile";
 import { dueCount } from "../../lib/study";
+import { dayItems, daysBetween, loadCalendar, nextExam, nowAndNext, today, upcoming } from "../../lib/calendar";
+import { formatTime } from "../../lib/calendarText";
 
 // One research-backed habit a day, so the "why" behind the tools is visible.
 const TIPS = [
@@ -126,6 +128,14 @@ export default function StudentDashboard() {
   const cal = calibration(log);
   const doneTasks = plan.filter((t) => t.done).length;
   const tip = TIPS[new Date().getDate() % TIPS.length];
+  // The calendar's next real exam takes over the countdown once the student has one.
+  const calendar = loadCalendar();
+  const calExam = nextExam(calendar);
+  const examDays = calExam ? daysBetween(today(), calExam.date) : 0;
+  const todayItems = dayItems(calendar, today());
+  const { current, next } = nowAndNext(todayItems);
+  const dueSoon = upcoming(calendar, today(), 2).filter((e) => (e.category === "homework" || e.category === "assignment") && !e.done);
+  const classesToday = todayItems.filter((i) => i.periodId && !i.isBreak).length;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -139,7 +149,12 @@ export default function StudentDashboard() {
           )
         }
         subtitle={
-          editing ? (
+          calExam ? (
+            <Link to={`/student/calendar?item=${encodeURIComponent(calExam.id)}`} className="inline-flex items-center gap-2 hover:text-brand">
+              <Target className="h-4 w-4 text-brand" />
+              {calExam.title}: {examDays > 1 ? `${examDays} days to go` : examDays === 1 ? "tomorrow" : "today"}
+            </Link>
+          ) : editing ? (
             <form
               className="mt-1 flex flex-wrap items-center gap-2"
               onSubmit={(e) => {
@@ -250,6 +265,37 @@ export default function StudentDashboard() {
         </div>
 
         <div className="space-y-5">
+          <Link to="/student/calendar" className="card block p-6 transition hover:shadow-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 font-semibold">
+                <CalendarDays className="h-4 w-4 text-brand" /> Today at school
+              </div>
+              <span className="text-xs font-medium text-brand">Open calendar</span>
+            </div>
+            {calendar.periods.length || calendar.events.length ? (
+              <div className="mt-3 space-y-1.5 text-sm">
+                {current && (
+                  <div>
+                    <span className="font-medium text-brand">Now:</span> {current.title} until {formatTime(current.end)}
+                  </div>
+                )}
+                {next ? (
+                  <div>
+                    <span className="font-medium">Next:</span> {next.title} at {formatTime(next.start)}
+                    {next.room && ` · ${next.room}`}
+                  </div>
+                ) : (
+                  <div className="text-slate-500">{classesToday ? "No more classes today." : "No classes today."}</div>
+                )}
+                <div className="text-slate-500">
+                  {dueSoon.length ? `${dueSoon.length} homework item${dueSoon.length > 1 ? "s" : ""} due in the next 2 days` : "No homework due in the next 2 days"}
+                </div>
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-slate-500">Add your timetable and exam dates to see your day here and get a revision plan.</p>
+            )}
+          </Link>
+
           <div className="card p-6">
             <div className="font-semibold">Where to practise</div>
             <p className="mt-1 text-xs text-slate-500">Based on your recent practice. It changes as you learn, so it's never a label.</p>

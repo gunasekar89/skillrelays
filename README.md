@@ -27,7 +27,7 @@ set -a && source .env && set +a
 uvicorn app.main:app --port 8000
 ```
 
-The web app proxies `/api` to port 8000. API keys stay on the server and never reach the browser. Without the API, the assistant still works in a labeled offline mode. Tests: `pip install -r requirements-dev.txt && pytest`. Use Chrome or Edge for the full voice experience: the browser's speech recognition powers the live transcript, and its speech synthesis gives the interviewer a voice.
+The web app proxies `/api` to port 8000. API keys stay on the server and never reach the browser. Without the API, the assistant still works in a labeled offline mode. Tests: `pip install -r requirements-dev.txt && pytest` for the API, and `npm test` in `apps/web` for the calendar logic. Use Chrome or Edge for the full voice experience: the browser's speech recognition powers the live transcript, and its speech synthesis gives the interviewer a voice.
 
 ## Put it online (Azure App Service)
 
@@ -50,6 +50,8 @@ The enterprise demo trains freshers on credit card customer support (BFSI). A sa
 - **Training content**: summary, topics, runbook steps traced to the transcript, FAQ, quiz and unanswered questions. Trainer approval is required before employees see it.
 - **Employee quiz** with read-aloud questions and a score.
 - **AI knowledge assistant**: upload (PDF, DOCX, TXT, MD), write or edit training documents, then ask by voice or text. Answers come only from the documents, cite the passage and document version they used, and say so when the documents don't cover a question. Saving an edit bumps the version, and the next answer uses it. Approving a KT session adds it automatically. It uses Azure OpenAI or OpenAI when a key is set.
+- **Student academic calendar** (`/student/calendar`): day timeline with what's on now and next, week, month, agenda and academic-year views, an exam list with full exam details and live countdowns, homework, holidays, meetings and events, colour-coded with filters and search, keyboard shortcuts and Tamil labels. Setup covers the academic year, terms, Saturday rules, special working days, the weekly timetable (with clash checks) and holidays. A school's `.ics` calendar can be imported as read-only school items (re-importing moves changed exams and marks them rescheduled), and the whole calendar exports to a phone calendar. Reminders (exam N days before, homework due, moved exams, holidays and meetings tomorrow) show in the app and as browser notifications, with quiet hours, a delivery log and no repeats. A labelled sample term can be loaded and removed in one click. See [docs/calendar.md](docs/calendar.md).
+- **AI study planner**: a day-by-day revision plan for chosen exams from their dates, the chapters not yet ticked, the student's own practice results, holidays and their available time, in session lengths that suit their standard. A deterministic scheduler builds the plan; the model only writes the summary, which is checked against the plan. Nothing goes into the calendar until the student accepts it.
 - **Student voice mock interview**: the interviewer speaks, listens and responds conversationally. Results show rubric scores and next steps.
 
 ## Honest limits
