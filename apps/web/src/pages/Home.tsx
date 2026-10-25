@@ -60,7 +60,7 @@ export default function Home() {
               <span className="bg-gradient-to-r from-teal to-cyan-300 bg-clip-text text-transparent">into Capability.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-slate-300">
-              An AI study companion for students, and knowledge transfer that turns every expert session into training for organizations.
+              An AI study companion for school students from Standard 1 to 10, and knowledge transfer that turns every expert session into training for organizations.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/student" className="btn-primary px-5 py-3 text-base">
@@ -88,10 +88,10 @@ export default function Home() {
           {/* Product cards */}
           <div id="products" className="grid gap-5 sm:grid-cols-2">
             <ProductCard
-              tag="For individuals"
+              tag="For Standards 1–10"
               name="Student"
               tagline="Study Smarter. Remember Longer. Ace Your Exams."
-              features={["AI notes, flashcards and quizzes", "A study coach that gives hints, not answers", "Spaced revision of your mistakes", "A daily study plan"]}
+              features={["AI notes, flashcards and quizzes", "A study coach that gives hints, not answers", "Answers in English or Tamil", "A weekly summary for parents"]}
               cta="Start practicing"
               to="/student"
               accent="brand"

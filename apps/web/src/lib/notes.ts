@@ -1,6 +1,6 @@
 // A learner's own notebook: typed text plus an optional handwritten page, kept in this browser's
 // localStorage. The AI tools (summarize, tidy up, flashcards, quiz, handwriting) run on the API.
-import { learnerParams } from "./profile";
+import { bandOf, learnerParams, loadProfile, type Band } from "./profile";
 
 export type Note = {
   id: string;
@@ -35,11 +35,46 @@ const sample = (): Note => ({
   updatedAt: new Date().toISOString(),
 });
 
+const evsSample = (): Note => ({
+  id: "note-sample-evs",
+  title: "Living and non-living things",
+  subject: "EVS",
+  chapter: "Ch 2: Things around us",
+  text: [
+    "Living and non-living things",
+    "- Living things grow, eat, breathe and move on their own",
+    "- Plants, animals and people are living things",
+    "- Non-living things do not grow, eat or breathe",
+    "- A stone, a chair and a pencil are non-living things",
+    "- Plants make their own food using sunlight and water",
+    "- Animals need food, water and air to live",
+  ].join("\n"),
+  updatedAt: new Date().toISOString(),
+});
+
+const fractionsSample = (): Note => ({
+  id: "note-sample-fractions",
+  title: "Fractions",
+  subject: "Mathematics",
+  chapter: "Ch 7: Fractions",
+  text: [
+    "Fractions",
+    "- A fraction is a part of a whole, written as numerator over denominator, like 3/4",
+    "- The denominator is the number of equal parts the whole is cut into",
+    "- The numerator is the number of parts we take",
+    "- Equivalent fractions show the same amount, like 1/2 = 2/4 = 4/8",
+    "- To add fractions with the same denominator, add the numerators and keep the denominator: 1/5 + 2/5 = 3/5",
+    "- A proper fraction is less than 1, and an improper fraction like 7/4 is more than 1",
+    "- 7/4 as a mixed fraction is 1 3/4",
+  ].join("\n"),
+  updatedAt: new Date().toISOString(),
+});
+
 const studySample = (): Note => ({
   id: "note-sample-biology",
   title: "Photosynthesis",
   subject: "Science",
-  chapter: "Ch 1: Nutrition in plants",
+  chapter: "Ch 6: Life processes",
   text: [
     "Photosynthesis",
     "- Photosynthesis is how green plants make food from light, water and carbon dioxide",
@@ -54,6 +89,19 @@ const studySample = (): Note => ({
   updatedAt: new Date().toISOString(),
 });
 
+// One school sample per stage, so every standard has something to practise on from the first visit.
+const SCHOOL_SAMPLES: Record<Exclude<Band, "college">, () => Note> = { "1-3": evsSample, "4-7": fractionsSample, "8-10": studySample };
+
+const isStudent = () => window.location.pathname.startsWith("/student");
+
+/** Students start with the sample for their own stage first; Enterprise keeps the GCU notes. */
+function defaultNotes(): Note[] {
+  if (!isStudent()) return [studySample(), sample()];
+  const band = bandOf(loadProfile().standard);
+  const all = Object.entries(SCHOOL_SAMPLES).map(([b, make]) => ({ b, note: make() }));
+  return [...all.filter((x) => x.b === band), ...all.filter((x) => x.b !== band)].map((x) => x.note);
+}
+
 export function loadNotes(): Note[] {
   try {
     const raw = localStorage.getItem(KEY);
@@ -61,7 +109,16 @@ export function loadNotes(): Note[] {
   } catch {
     /* fall through to the sample */
   }
-  return [studySample(), sample()];
+  return defaultNotes();
+}
+
+/** Make sure the sample for this stage is in the notebook (for students whose notebook predates it). */
+export function ensureSample(band: Band) {
+  if (band === "college") return;
+  const notes = loadNotes();
+  const note = SCHOOL_SAMPLES[band]();
+  if (notes.some((n) => n.id === note.id)) return;
+  saveNotes([note, ...notes]);
 }
 
 export function saveNotes(notes: Note[]) {

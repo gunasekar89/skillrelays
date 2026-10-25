@@ -2,9 +2,9 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Award, CalendarClock, CheckCircle2, Circle, Copy, Flame, Gauge, NotebookPen, Pencil, Send, Settings, Target } from "lucide-react";
 import { PageHeader, StatCard } from "../../components/ui";
-import { loadNotes } from "../../lib/notes";
+import { ensureSample, loadNotes } from "../../lib/notes";
 import { badges, calibration, daysLeft, loadActivity, loadGoal, mastery, masteryWord, parentSummary, practiceDays, saveGoal, todaysPlan, type ExamGoal } from "../../lib/progress";
-import { DEFAULT_PROFILE, hasProfile, loadProfile, saveProfile, type Profile } from "../../lib/profile";
+import { bandOf, DEFAULT_PROFILE, hasProfile, loadProfile, saveProfile, type Profile } from "../../lib/profile";
 import { dueCount } from "../../lib/study";
 
 // One research-backed habit a day, so the "why" behind the tools is visible.
@@ -25,6 +25,7 @@ function ProfileForm({ initial, onDone, first }: { initial: Profile; onDone: () 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     saveProfile(p);
+    ensureSample(bandOf(p.standard));
     onDone();
   };
   const field = "mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand focus:outline-none";
@@ -90,7 +91,14 @@ export default function StudentDashboard() {
   const [profileOpen, setProfileOpen] = useState(() => !hasProfile());
   const [firstVisit] = useState(() => !hasProfile());
   const [copied, setCopied] = useState(false);
+  const [, refresh] = useState(0);
   const profile = loadProfile();
+  // Demo shortcut: see the app as a younger or older student without filling in the profile again.
+  const viewAs = (standard: number) => {
+    saveProfile({ ...profile, standard });
+    ensureSample(bandOf(standard));
+    refresh((n) => n + 1);
+  };
   const [goal, setGoal] = useState<ExamGoal>(loadGoal);
   const [editing, setEditing] = useState(false);
   const notes = loadNotes();
@@ -157,6 +165,25 @@ export default function StudentDashboard() {
       />
 
       {profileOpen && <ProfileForm initial={profile} first={firstVisit && !hasProfile()} onDone={() => setProfileOpen(false)} />}
+
+      {!profileOpen && (
+        <div className="mb-5 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+          See the app as
+          {[
+            { n: 2, label: "Standard 2 (guided)" },
+            { n: 5, label: "Standard 5" },
+            { n: 9, label: "Standard 9" },
+          ].map(({ n, label }) => (
+            <button
+              key={n}
+              onClick={() => viewAs(n)}
+              className={`rounded-full px-3 py-1 ring-1 ${profile.standard === n ? "bg-brand text-white ring-brand" : "ring-slate-300 hover:bg-slate-100"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Practice this week" value={`${practiceDays(log)} / 7 days`} icon={<Flame className="h-4 w-4" />} hint="A little most days works best" />

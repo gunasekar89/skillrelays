@@ -17,7 +17,7 @@ const KEY = "sr.profile";
 
 export const DEFAULT_PROFILE: Profile = { name: "Sneha", standard: 9, board: "CBSE", language: "en", largeText: false, highContrast: false };
 
-export const SUBJECTS = ["Science", "Mathematics", "English", "Tamil", "Social Science", "Hindi", "Computer Science", "Other"];
+export const SUBJECTS = ["EVS", "Science", "Mathematics", "English", "Tamil", "Social Science", "Hindi", "Computer Science", "Other"];
 
 export function hasProfile() {
   try {
